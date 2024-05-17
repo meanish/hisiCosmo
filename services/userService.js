@@ -4,12 +4,7 @@ const { validateUserData } = require("../schemas/userSchema");
 
 async function register(userData) {
     // Validate user data
-
-    console.log("UserData", userData)
-
     const validationErrors = validateUserData(userData);
-
-
     if (validationErrors) {
         throw new Error(JSON.stringify(validationErrors));
     }
