@@ -16,6 +16,8 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "gitignore": "^0.7.0",
+    "jsonwebtoken": "^9.0.2",
+    "jwt-decode": "^4.0.0",
     "mongoose": "^8.3.4",
     "mysql": "^2.18.1",
     "mysql2": "^3.9.7",
@@ -26,5 +28,8 @@
   },
   "engines": {
     "node": ">=14.20.1"
+  },
+  "devDependencies": {
+    "sequelize-cli": "^6.6.2"
   }
 }

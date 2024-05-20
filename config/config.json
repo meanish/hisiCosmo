@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "hisicosmo",
+    "password": "hisicosmo",
+    "database": "hisicosmo",
+    "host": "localhost",
+    "dialect": "mysql"
+  },
+  "test": {
+    "username": "hisicosmo",
+    "password": "hisicosmo",
+    "database": "hisicosmo",
+    "host": "localhost",
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "hisicosmo",
+    "password": "hisicosmo",
+    "database": "hisicosmo",
+    "host": "localhost",
+    "dialect": "mysql"
+  }
+}
