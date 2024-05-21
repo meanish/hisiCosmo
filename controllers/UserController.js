@@ -9,8 +9,8 @@ async function registerUser(req, res) {
 
         const newUser = await userService.register(req.body);
 
+            res.status(201).json(newUser);
 
-        res.status(201).json(newUser);
     }
 
     catch (error) {

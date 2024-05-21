@@ -10,8 +10,15 @@ const app = express();
 
 const LoginRouter = require("./routes/LoginRouter")
 const RegisterRouter = require("./routes/RegisterRouter")
+const ProductRouter = require("./routes/ProductRouter")
 
-const authRoutes = require("./routes/authRoutes")
+
+
+const categoriesRouter = require("./routes/categoriesRoutes")
+
+const authRoutes = require("./routes/authRoutes");
+const Product = require("./models/productsModel");
+const Category = require("./models/categoryModel");
 require("./database/conn")
 
 
@@ -24,13 +31,21 @@ app.use(cors())
 
 
 
+
+
+
 app.use("/auth", authRoutes)
 
+app.use("/categories", categoriesRouter)
+
+app.use("/products", ProductRouter)
 
 
 router.get("/", (req, res) => {
     res.send("Home Page Here")
 });
+
+
 
 
 /* auth include login , register, logout */
