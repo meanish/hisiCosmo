@@ -11,7 +11,7 @@ router.post('/', CategoryController.newCategory);
 router.get("/", CategoryController.getAllCat);
 // router.post('/logout', authController.logout);
 
-
+router.get("/search", CategoryController.getInputCat)
 // router.post('/register', UserController.registerUser)
 
 

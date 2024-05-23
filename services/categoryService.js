@@ -1,13 +1,13 @@
 const CategoryRepository = require("../repositories/categoryRepository")
 
 const createNew = async (catData) => {
-
+    console.log("From frontend", catData)
     try {
         const category = await CategoryRepository.create(catData);
         return category;
 
     } catch (error) {
-        return { success: false, message: "Catgory failed" };
+        return { success: false, message: "Category failed" };
     }
 
 
@@ -27,6 +27,7 @@ const getallCat = async () => {
 
 
 }
+
 
 
 

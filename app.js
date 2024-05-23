@@ -24,7 +24,7 @@ require("./database/conn")
 
 
 
-app.use(express.json()); //if we get json in return from file express handles in postman
+app.use(express.json()); //if we get json as req then it accepts
 app.use(express.urlencoded({ extended: false })); //not only postman in live server too return json handles
 app.use(cors())
 
