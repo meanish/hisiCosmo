@@ -56,9 +56,6 @@ const Category = sequelize.define('Category', {
 });
 
 
-Category.hasMany(Category, { as: 'subcategories', foreignKey: 'parent_category_id' });
-Category.belongsTo(Category, { as: 'parent', foreignKey: 'parent_category_id' });
-
 
 
 sequelize.sync().then(() => {

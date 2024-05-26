@@ -13,11 +13,11 @@ const createNew = async (productData) => {
 }
 
 
-const addCategoriesToProduct = async ({ productId, categoryIds }) => {
+const addCategoriesToProduct = async ({ productId, categoryId }) => {
 
 
     try {
-        const Catproduct = await ProductRepository.addCategories(productId, categoryIds);
+        const Catproduct = await ProductRepository.addCategories(productId, categoryId);
         return Catproduct;
 
     } catch (error) {

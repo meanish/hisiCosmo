@@ -4,14 +4,14 @@ const productService = require("../services/productServices")
 const newProduct = async (req, res) => {
 
 
-    const { categoryIds } = req.body;
+    const { categoryId } = req.body;
 
 
     try {
         const result = await productService.createNew(req.body);
 
-        if (categoryIds && categoryIds.length > 0) {
-            await productService.addCategoriesToProduct({ productId: result.id, categoryIds });
+        if (categoryId) {
+            await productService.addCategoriesToProduct({ productId: result.id, categoryId });
         }
 
         res.status(200).json({ data: result, sucess: true });

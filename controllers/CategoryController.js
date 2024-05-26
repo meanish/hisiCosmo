@@ -8,9 +8,17 @@ const newCategory = async (req, res) => {
     try {
         const result = await categoryService.createNew(req.body);
 
-        res.status(200).json({ data: result, sucess: true });
+        if (result.success === false) {
+            // If the service returns an error, send a 400 response with the message
+            res.status(400).json({ success: false, message: result.message });
+        } else {
+            // If the service returns a success, send a 200 response with the data
+            res.status(200).json({ data: result, success: true });
+        }
+
+
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Internal server error' });
+        res.status(500).json({ success: false, message: error.message });
     }
 }
 
@@ -18,7 +26,11 @@ const getAllCat = async (req, res) => {
 
     try {
         const result = await categoryService.getallCat();
+
+
         res.status(200).json({ data: result, sucess: true });
+
+
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
@@ -73,10 +85,25 @@ const getInputCat = async (req, res) => {
 }
 
 
+const editCategory = async (req, res) => {
+
+    try {
+        const result = await categoryService.editCat(req.body);
+        res.status(200).json({ data: result, sucess: true });
+
+    }
+    catch (error) {
+        // Step 5: Handle any potential errors
+        console.error(error);
+        res.status(500).json({ error: "An error occurred while processing your request" });
+    }
+}
+
 
 
 module.exports = {
     newCategory,
     getAllCat,
-    getInputCat
+    getInputCat,
+    editCategory
 };
