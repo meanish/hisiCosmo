@@ -37,6 +37,17 @@ const Category = sequelize.define('Category', {
         },
         onDelete: 'CASCADE'
     },
+
+    description: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+
+    featured_image: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    }
+
 }, {
     // Define model options
     tableName: 'categories', // Name of the database table

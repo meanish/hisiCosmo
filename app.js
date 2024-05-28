@@ -11,7 +11,7 @@ const app = express();
 const LoginRouter = require("./routes/LoginRouter")
 const RegisterRouter = require("./routes/RegisterRouter")
 const ProductRouter = require("./routes/ProductRouter")
-
+const ImageUploadRouter = require("./routes/imageUploadRoutes")
 
 
 const categoriesRouter = require("./routes/categoriesRoutes")
@@ -20,7 +20,7 @@ const authRoutes = require("./routes/authRoutes");
 const Product = require("./models/productsModel");
 const Category = require("./models/categoryModel");
 require("./database/conn")
-
+const path = require('path');
 
 
 
@@ -39,6 +39,12 @@ app.use("/auth", authRoutes)
 app.use("/categories", categoriesRouter)
 
 app.use("/products", ProductRouter)
+
+console.log("pahtnam", __dirname)
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use("/upload_image", ImageUploadRouter)
+
 
 
 router.get("/", (req, res) => {

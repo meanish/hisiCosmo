@@ -8,8 +8,9 @@ const router = express.Router();
 
 router.post('/', CategoryController.newCategory);
 
-router.put('/', CategoryController.editCategory);
+router.put('/:id', CategoryController.editSingleCat);
 
+router.delete("/:id", CategoryController.deleteSingleCategory)
 
 router.get("/", CategoryController.getAllCat);
 // router.post('/logout', authController.logout);
@@ -17,6 +18,6 @@ router.get("/", CategoryController.getAllCat);
 router.get("/search", CategoryController.getInputCat)
 // router.post('/register', UserController.registerUser)
 
-router.get("/:slug", CategoryController.getSingleCat)
+router.get("/:id", CategoryController.getSingleCat)
 
 module.exports = router

@@ -10,7 +10,7 @@ const newCategory = async (req, res) => {
 
         if (result.success === false) {
             // If the service returns an error, send a 400 response with the message
-            res.status(400).json({ success: false, message: result.message });
+            res.status(400).json({ message: result.message, success: false });
         } else {
             // If the service returns a success, send a 200 response with the data
             res.status(200).json({ data: result, success: true });
@@ -85,11 +85,21 @@ const getInputCat = async (req, res) => {
 }
 
 
-const editCategory = async (req, res) => {
+const editSingleCat = async (req, res) => {
 
     try {
-        const result = await categoryService.editCat(req.body);
-        res.status(200).json({ data: result, sucess: true });
+        const { id } = req.params;
+
+        const isAvailable = await categoryService.getSingleCat(id);
+
+        if (isAvailable.success === false) {
+            // If the service returns an error, send a 400 response with the message
+            res.status(400).json({ success: false, message: result.message });
+        }
+
+        const updatedcategory = await categoryService.editSingleCat({ data: req.body, id })
+
+        res.status(200).json({ data: updatedcategory, success: true });
 
     }
     catch (error) {
@@ -101,9 +111,56 @@ const editCategory = async (req, res) => {
 
 
 
+
+const getSingleCat = async (req, res) => {
+
+    try {
+        const { id } = req.params;
+
+        const result = await categoryService.getSingleCat(id);
+        
+        if (result.success === false) {
+            // If the service returns an error, send a 400 response with the message
+            res.status(400).json({ success: false, message: result.message });
+        } else {
+            // If the service returns a success, send a 200 response with the data
+            res.status(200).json({ data: result, success: true });
+        }
+
+
+    }
+    catch (error) {
+        // Step 5: Handle any potential errors
+        console.error(error);
+        res.status(500).json({ error: "An error occurred while processing your request" });
+    }
+}
+
+
+const deleteSingleCategory = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const getCat = await categoryService.getSingleCat(id);
+        if (!getCat.success) {
+            // If the service returns an error, send a 400 response with the message
+            res.status(400).json({ success: false, message: result.message });
+        } else {
+            const deleteCat = await categoryService.deleteSingleCat(getCat)
+            res.status(200).json({ success: "DeleteSucess" });
+
+        }
+    }
+    catch (error) {
+ 
+        res.status(500).json({ error: "An error occurred while processing your request" });
+    }
+}
+
 module.exports = {
     newCategory,
     getAllCat,
     getInputCat,
-    editCategory
+    editSingleCat,
+    getSingleCat,
+    deleteSingleCategory
 };
