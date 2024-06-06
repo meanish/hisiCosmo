@@ -27,6 +27,7 @@ const path = require('path');
 app.use(express.json()); //if we get json as req then it accepts
 app.use(express.urlencoded({ extended: false })); //not only postman in live server too return json handles
 app.use(cors())
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 
@@ -40,9 +41,8 @@ app.use("/categories", categoriesRouter)
 
 app.use("/products", ProductRouter)
 
-console.log("pahtnam", __dirname)
+console.log("pathname", __dirname)
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/upload_image", ImageUploadRouter)
 
 

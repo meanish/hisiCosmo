@@ -1,12 +1,12 @@
 const express = require('express');
 const CategoryController = require('../controllers/CategoryController');
 const router = express.Router();
+const upload = require("../utils/upload")
 
 
 
 
-
-router.post('/', CategoryController.newCategory);
+router.post('/', upload.single('featured_image'), CategoryController.newCategory);
 
 router.put('/:id', CategoryController.editSingleCat);
 

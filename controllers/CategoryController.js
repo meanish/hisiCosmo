@@ -2,11 +2,9 @@ const categoryService = require("../services/categoryService")
 
 
 const newCategory = async (req, res) => {
-    console.log("Body", req.body)
-
-
     try {
-        const result = await categoryService.createNew(req.body);
+        const result = await categoryService.createNew(req);
+
 
         if (result.success === false) {
             // If the service returns an error, send a 400 response with the message
@@ -15,8 +13,6 @@ const newCategory = async (req, res) => {
             // If the service returns a success, send a 200 response with the data
             res.status(200).json({ data: result, success: true });
         }
-
-
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -59,10 +55,12 @@ const getInputCat = async (req, res) => {
                 }
 
 
-                // recursion method 
-                if (category.subcategories && category.subcategories.length > 0) {
-                    matches = matches.concat(findMatches(category.subcategories, searchText));
-                }
+                // // recursion method 
+                // if (category.subcategories && category.subcategories.length > 0) {
+                //     matches = matches.concat(findMatches(category.subcategories, searchText));
+                // }
+
+                
             });
 
             return matches;
@@ -89,6 +87,7 @@ const editSingleCat = async (req, res) => {
 
     try {
         const { id } = req.params;
+        const file = req.file;
 
         const isAvailable = await categoryService.getSingleCat(id);
 
@@ -97,7 +96,7 @@ const editSingleCat = async (req, res) => {
             res.status(400).json({ success: false, message: result.message });
         }
 
-        const updatedcategory = await categoryService.editSingleCat({ data: req.body, id })
+        const updatedcategory = await categoryService.editSingleCat({ data: req.body, id, file })
 
         res.status(200).json({ data: updatedcategory, success: true });
 
@@ -118,7 +117,7 @@ const getSingleCat = async (req, res) => {
         const { id } = req.params;
 
         const result = await categoryService.getSingleCat(id);
-        
+
         if (result.success === false) {
             // If the service returns an error, send a 400 response with the message
             res.status(400).json({ success: false, message: result.message });
@@ -151,7 +150,7 @@ const deleteSingleCategory = async (req, res) => {
         }
     }
     catch (error) {
- 
+
         res.status(500).json({ error: "An error occurred while processing your request" });
     }
 }

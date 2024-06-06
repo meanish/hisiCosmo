@@ -3,6 +3,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database/conn');
 const slugify = require('slugify');
+const Media = require('./mediaModel');
 
 
 const Category = sequelize.define('Category', {
@@ -41,13 +42,7 @@ const Category = sequelize.define('Category', {
     description: {
         type: DataTypes.STRING,
         allowNull: true,
-    },
-
-    featured_image: {
-        type: DataTypes.STRING,
-        allowNull: false,
     }
-
 }, {
     // Define model options
     tableName: 'categories', // Name of the database table
@@ -66,6 +61,20 @@ const Category = sequelize.define('Category', {
     },
 });
 
+// Define polymorphic association
+Category.hasMany(Media, {
+    foreignKey: 'mediaableId',
+    constraints: false,
+    scope: {
+        mediaableType: 'category'
+    }
+});
+
+Media.belongsTo(Category, {
+    foreignKey: 'mediaableId',
+    constraints: false,
+    as: 'mediaable'
+});
 
 
 
