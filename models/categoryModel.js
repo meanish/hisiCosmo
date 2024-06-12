@@ -50,13 +50,14 @@ const Category = sequelize.define('Category', {
     underscored: true, // Use snake_case for column names
     hooks: {
         beforeValidate: (category, options) => {
+            if (category.parent_category_id === "0" || category.parent_category_id === "") {
+                category.parent_category_id = null;
+            }
             if (category.name) {
                 category.slug = slugify(category.name, { lower: true, strict: true });
             }
 
-            if (category.parent_category_id === 0) {
-                category.parent_category_id = null;
-            }
+
         },
     },
 });

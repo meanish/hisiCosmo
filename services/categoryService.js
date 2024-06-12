@@ -3,6 +3,7 @@ const Category = require("../models/categoryModel")
 const slugify = require('slugify');
 const sequelize = require("../database/conn");
 const MediaRepository = require("../repositories/mediaRepository");
+const categoryRepository = require("../repositories/categoryRepository");
 
 
 
@@ -36,7 +37,7 @@ const createNew = async (req) => {
             };
 
             const featured_image_file = await MediaRepository.create(mediaData, { transaction });
-            featured_image = `http://localhost:8000/${featured_image_file.filePath}`;
+            featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.filePath} `;
         }
 
         await transaction.commit();
@@ -75,7 +76,7 @@ const getallCat = async () => {
 
         const buildCategoryTree = (categories) => {
             const categoryTree = categories
-                .filter(category => category.parent_category_id === 0)
+                .filter(category => category.parent_category_id === null)
                 .map(category => {
                     const subCategories = categories.filter(sub => sub.parent_category_id === category.id)
                     return {
@@ -84,13 +85,11 @@ const getallCat = async () => {
                     };
                 });
 
-            console.log("Inside", categoryTree)
             return categoryTree;
         };
 
         // Build the category tree starting from the root (parent_category_id === null)
         const categoryTree = buildCategoryTree(categories);
-        console.log("Cat Tree", categoryTree);
         return categoryTree;
 
     } catch (error) {
@@ -101,8 +100,11 @@ const getallCat = async () => {
 }
 
 
-const editSingleCat = async ({ data, id, file }) => {
-    const { parent_category_id, name } = data;
+const editSingleCat = async ({ fields, id, file }) => {
+    const transaction = await sequelize.transaction();
+    const { parent_category_id, name, description } = fields;
+    let featured_image_file
+    let slug
 
     // try {
     //     const category = await CategoryRepository.update(id, parent_category_id, name);
@@ -123,23 +125,39 @@ const editSingleCat = async ({ data, id, file }) => {
                 filePath: file.path,
                 fileType: file.mimetype
             };
-
             // Find the existing featured_image
-            const existingMedia = await Media.findOne({ where: { mediaableId: id, mediaableType: 'category' } });
+            const existingMedia = await MediaRepository.find(mediaData);
+
+
 
             if (existingMedia) {
                 // Update existing media
-                await existingMedia.update(mediaData, { transaction });
+                featured_image_file = await MediaRepository.update(mediaData, { transaction });
             } else {
                 // Create new media if it doesn't exist
-                await Media.create(mediaData, { transaction });
+                featured_image_file = await MediaRepository.create(mediaData, { transaction });
+
+            }
+
+            featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.filePath} `;
+
+        }
+        else {
+            // If there's no new file, get the existing featured_image if it exists
+            const existingMedia = await MediaRepository.find({ mediaableId: id, mediaableType: 'category' });
+            if (existingMedia) {
+                featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${existingMedia.filePath}`;
+            }
+            else {
+                featured_image = "";
+
             }
         }
 
-        const updatedCategory = await categoryService.editSingleCat({ data: updatedCategoryData, id }, { transaction });
-
+        const updatedCategory = await categoryRepository.update({ id, parent_category_id, name, description }, { transaction });
         await transaction.commit();
-        res.status(200).json({ data: updatedCategory, success: true });
+
+        return { ...updatedCategory.dataValues, featured_image: `${featured_image}` };
 
     } catch (error) {
         return { success: false, message: "Category failed" };
@@ -148,52 +166,52 @@ const editSingleCat = async ({ data, id, file }) => {
 }
 
 
-    const getSingleCat = async (id) => {
-        try {
-            const categories = await CategoryRepository.all();
+const getSingleCat = async (id) => {
+    try {
+        const categories = await CategoryRepository.all();
 
-            const findCategoryData = (id) => {
-                const category = categories.find(cat => cat.dataValues.id === +id);
+        const findCategoryData = (id) => {
+            const category = categories.find(cat => cat.dataValues.id === +id);
 
-                if (!category) {
-                    return null;
-                }
+            if (!category) {
+                return null;
+            }
 
-                const parentCategoryData = category.dataValues.parent_category_id
-                    ? findCategoryData(category.dataValues.parent_category_id)
-                    : null;
+            const parentCategoryData = category.dataValues.parent_category_id
+                ? findCategoryData(category.dataValues.parent_category_id)
+                : null;
 
-                return {
-                    ...category.dataValues,
-                    parentData: parentCategoryData,
-                };
+            return {
+                ...category.dataValues,
+                parentData: parentCategoryData,
             };
+        };
 
-            // Assuming `id` is defined somewhere in your code as the root category id
-            const categoryData = findCategoryData(id);
+        // Assuming `id` is defined somewhere in your code as the root category id
+        const categoryData = findCategoryData(id);
 
-            return categoryData;
+        return categoryData;
 
-        } catch (error) {
-            return { success: false, message: error.message };
-        }
+    } catch (error) {
+        return { success: false, message: error.message };
     }
+}
 
 
-    const deleteSingleCat = async (data) => {
-        console.log("whats to delete", data)
-        return data
-    }
+const deleteSingleCat = async (data) => {
+    console.log("whats to delete", data)
+    return data
+}
 
 
 
 
 
-    module.exports = {
-        createNew,
-        getallCat,
-        editSingleCat,
-        getSingleCat,
-        deleteSingleCat
+module.exports = {
+    createNew,
+    getallCat,
+    editSingleCat,
+    getSingleCat,
+    deleteSingleCat
 
-    };
+};

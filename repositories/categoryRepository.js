@@ -5,7 +5,6 @@ const slugify = require('slugify');
 module.exports = {
 
     create: async (catData) => {
-        console.log("if cat before store", catData)
         try {
 
             // Create a new user in the database
@@ -29,13 +28,15 @@ module.exports = {
         }
     },
 
-    update: async (id, parent_category_id, name) => {
+    update: async ({ id, parent_category_id, name, description }) => {
+        console.log("What the id", id)
         try {
 
             const category = await Category.findByPk(id);
             category.name = name;
             category.slug = slugify(name, { lower: true, strict: true });
             category.parent_category_id = parent_category_id;
+            category.description = description;
             await category.save();
 
             // Return the updated category

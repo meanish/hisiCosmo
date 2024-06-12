@@ -1,5 +1,5 @@
 const categoryService = require("../services/categoryService")
-
+const formidable = require('formidable');
 
 const newCategory = async (req, res) => {
     try {
@@ -60,7 +60,7 @@ const getInputCat = async (req, res) => {
                 //     matches = matches.concat(findMatches(category.subcategories, searchText));
                 // }
 
-                
+
             });
 
             return matches;
@@ -87,18 +87,17 @@ const editSingleCat = async (req, res) => {
 
     try {
         const { id } = req.params;
-        const file = req.file;
 
-        const isAvailable = await categoryService.getSingleCat(id);
+        const fields = req.body
+        const file = req.file
 
-        if (isAvailable.success === false) {
-            // If the service returns an error, send a 400 response with the message
-            res.status(400).json({ success: false, message: result.message });
-        }
 
-        const updatedcategory = await categoryService.editSingleCat({ data: req.body, id, file })
+        console.log("File ", file)
+        console.log("AAaaaaaBB", fields)
+        const updatedcategory = await categoryService.editSingleCat({ fields, id, file })
 
         res.status(200).json({ data: updatedcategory, success: true });
+
 
     }
     catch (error) {

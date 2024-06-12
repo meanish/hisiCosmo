@@ -8,7 +8,7 @@ const upload = require("../utils/upload")
 
 router.post('/', upload.single('featured_image'), CategoryController.newCategory);
 
-router.put('/:id', CategoryController.editSingleCat);
+router.put('/:id', upload.single('featured_image'), CategoryController.editSingleCat);
 
 router.delete("/:id", CategoryController.deleteSingleCategory)
 
