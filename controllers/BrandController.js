@@ -1,9 +1,10 @@
 const categoryService = require("../services/categoryService")
-const formidable = require('formidable');
+const brandService = require("../services/brandService")
 
-const newCategory = async (req, res) => {
+
+const createBrand = async (req, res) => {
     try {
-        const result = await categoryService.createNew(req);
+        const result = await brandService.createNew(req);
 
 
         if (result.success === false) {
@@ -18,13 +19,15 @@ const newCategory = async (req, res) => {
     }
 }
 
-const getAllCat = async (req, res) => {
+const getAllBrand = async (req, res) => {
 
     try {
-        const result = await categoryService.getallCat();
+        const result = await brandService.getallBrand();
 
-
-        res.status(200).json({ data: result, sucess: true });
+        if (result.success) {
+            res.status(200).json({ data: result.data, success: true });
+        }
+        else res.status(500).json({ success: false, message: 'failed to get all brands details' });
 
 
     } catch (error) {
@@ -83,7 +86,7 @@ const getInputCat = async (req, res) => {
 }
 
 
-const editSingleCat = async (req, res) => {
+const editSingleBrand = async (req, res) => {
 
     try {
         const { id } = req.params;
@@ -91,12 +94,13 @@ const editSingleCat = async (req, res) => {
         const fields = req.body
         const file = req.file
 
+        const updatedbrand = await brandService.editSingleBrand({ fields, id, file })
 
-        console.log("File ", file)
-        console.log("AAaaaaaBB", fields)
-        const updatedcategory = await categoryService.editSingleCat({ fields, id, file })
-
-        res.status(200).json({ data: updatedcategory, success: true });
+        if (updatedbrand.success) {
+            res.status(200).json({ data: updatedbrand.data, success: true });
+        } else {
+            res.status(400).json({ error: updatedbrand.message, success: false });
+        }
 
 
     }
@@ -135,15 +139,15 @@ const getSingleCat = async (req, res) => {
 }
 
 
-const deleteSingleCategory = async (req, res) => {
+const deleteSingleBrand = async (req, res) => {
     try {
         const { id } = req.params;
-        const isAvailable = await categoryService.getSingleCat(id);
-        if (!isAvailable) {
+        const getBrand = await brandService.getSingleBrand(id);
+        if (!getCat.success) {
             // If the service returns an error, send a 400 response with the message
-            res.status(400).json({ success: false, message: "Id not found" });
+            res.status(400).json({ success: false, message: result.message });
         } else {
-            const deleteCat = await categoryService.deleteSingleCat(id)
+            const deleteBrand = await brandService.deleteSingleBrand(getBrand)
             res.status(200).json({ success: "DeleteSucess" });
 
         }
@@ -154,10 +158,10 @@ const deleteSingleCategory = async (req, res) => {
 }
 
 module.exports = {
-    newCategory,
-    getAllCat,
+    createBrand,
+    getAllBrand,
     getInputCat,
-    editSingleCat,
+    editSingleBrand,
     getSingleCat,
-    deleteSingleCategory
+    deleteSingleBrand
 };

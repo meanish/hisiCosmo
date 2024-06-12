@@ -12,7 +12,7 @@ const LoginRouter = require("./routes/LoginRouter")
 const RegisterRouter = require("./routes/RegisterRouter")
 const ProductRouter = require("./routes/ProductRouter")
 const ImageUploadRouter = require("./routes/imageUploadRoutes")
-
+const BrandRouter = require("./routes/BrandRouter")
 
 const categoriesRouter = require("./routes/categoriesRoutes")
 
@@ -45,7 +45,7 @@ console.log("pathname", __dirname)
 
 app.use("/upload_image", ImageUploadRouter)
 
-
+app.use("/brand", BrandRouter)
 
 router.get("/", (req, res) => {
     res.send("Home Page Here")

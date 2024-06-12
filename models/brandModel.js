@@ -6,7 +6,7 @@ const slugify = require('slugify');
 const Media = require('./mediaModel');
 
 
-const Category = sequelize.define('Category', {
+const Brand = sequelize.define('Brand', {
     // Define model attributes
     id: {
         type: DataTypes.INTEGER,
@@ -27,32 +27,18 @@ const Category = sequelize.define('Category', {
         unique: true,
     },
 
-
-    parent_category_id: {
-        type: DataTypes.INTEGER,
-        defaultValue: null,
-
-        references: {
-            model: 'categories', // This references the table name
-            key: 'id'
-        },
-        onDelete: 'CASCADE'
-    },
-
     description: {
         type: DataTypes.STRING,
         allowNull: true,
     }
 }, {
     // Define model options
-    tableName: 'categories', // Name of the database table
+    tableName: 'brands', // Name of the database table
     timestamps: true, // Add createdAt and updatedAt fields
     underscored: true, // Use snake_case for column names
     hooks: {
         beforeValidate: (category, options) => {
-            if (category.parent_category_id === "0" || category.parent_category_id === "") {
-                category.parent_category_id = null;
-            }
+
             if (category.name) {
                 category.slug = slugify(category.name, { lower: true, strict: true });
             }
@@ -62,21 +48,22 @@ const Category = sequelize.define('Category', {
     },
 });
 
+
+
 // Define polymorphic association
-Category.hasMany(Media, {
-    onDelete: 'CASCADE',
+Brand.hasMany(Media, {
     foreignKey: 'mediaableId',
     constraints: false,
     scope: {
-        mediaableType: 'category'
+        mediaableType: 'brand'
     },
-    as: 'categoryMedia'
+    as: "brandMedia"
 });
 
-Media.belongsTo(Category, {
+Media.belongsTo(Brand, {
     foreignKey: 'mediaableId',
     constraints: false,
-    as: 'Categorymediaable'
+    as: 'brandMediaable'
 });
 
 
@@ -84,12 +71,12 @@ Media.belongsTo(Category, {
 sequelize.sync().then(() => {
     sequelize.sync()
         .then(() => {
-            console.log("Category table synchronized successfully.");
+            console.log("Brand table synchronized successfully.");
         })
         .catch((error) => {
-            console.error('Category to synchronize the User table:', error);
+            console.error('Failed to synchronize the Brand table:', error);
         });
 })
 
 
-module.exports = Category;
+module.exports = Brand;

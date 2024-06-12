@@ -19,6 +19,7 @@ module.exports = {
         console.log("GEt", mediaData)
         try {
             const isAvailable = await Media.findOne({ where: { mediaableId: mediaableId, mediaableType: mediaableType } });
+            console.log("What is", isAvailable)
             return isAvailable
 
         } catch (error) {

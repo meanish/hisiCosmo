@@ -74,16 +74,38 @@ const getallCat = async () => {
         // Build the category tree starting from the root (parent_category_id === null)
         // const categoryTree = buildCategoryTree(category);
 
-        const buildCategoryTree = (categories) => {
-            const categoryTree = categories
+        const buildCategoryTree = async (categories) => {
+
+            const getCategoryWithImage = async (category) => {
+                const mediaData = {
+                    mediaableId: category.id,
+                    mediaableType: 'category',
+                };
+
+                const featured_image_file = await MediaRepository.find(mediaData);
+                const featured_image = featured_image_file ? `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.filePath}` : "";
+
+                return {
+                    ...category.dataValues,
+                    featured_image,
+                };
+
+            };
+
+            const categoryTree = await Promise.all(categories
                 .filter(category => category.parent_category_id === null)
-                .map(category => {
-                    const subCategories = categories.filter(sub => sub.parent_category_id === category.id)
+                .map(async (category) => {
+                    const subCategories = await Promise.all(categories
+                        .filter(sub => sub.parent_category_id === category.id)
+                        .map(getCategoryWithImage)
+                    );
+
+                    const categoryWithImage = await getCategoryWithImage(category);
                     return {
-                        ...category.dataValues,
-                        subcategories: subCategories.map(sub => sub.dataValues),
+                        ...categoryWithImage,
+                        subcategories: subCategories,
                     };
-                });
+                }));
 
             return categoryTree;
         };
@@ -198,9 +220,8 @@ const getSingleCat = async (id) => {
 }
 
 
-const deleteSingleCat = async (data) => {
-    console.log("whats to delete", data)
-    return data
+const deleteSingleCat = async (id) => {
+    return CategoryRepository.delete(id)
 }
 
 

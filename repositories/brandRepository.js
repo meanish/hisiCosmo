@@ -1,15 +1,16 @@
+const Brand = require("../models/brandModel");
 const Category = require("../models/categoryModel")
 const slugify = require('slugify');
 
 
 module.exports = {
 
-    create: async (catData) => {
+    create: async (brandData) => {
         try {
 
             // Create a new user in the database
-            const CatData = await Category.create(catData);
-            return CatData;
+            const BrandData = await Brand.create(brandData);
+            return BrandData;
 
         } catch (error) {
             // Handle any errors that occur during user creation
@@ -19,8 +20,8 @@ module.exports = {
 
     all: async () => {
         try {
-            const AllCatData = await Category.findAll();
-            return AllCatData
+            const AllBrands = await Brand.findAll();
+            return AllBrands
 
         } catch (error) {
             // Handle any errors that occur during user creation
@@ -32,31 +33,20 @@ module.exports = {
         console.log("What the id", id)
         try {
 
-            const category = await Category.findByPk(id);
-            category.name = name;
-            category.slug = slugify(name, { lower: true, strict: true });
-            category.parent_category_id = parent_category_id;
-            category.description = description;
-            await category.save();
+            const brand = await Brand.findByPk(id);
+            brand.name = name;
+            brand.slug = slugify(name, { lower: true, strict: true });
+            brand.description = description;
+            await brand.save();
 
             // Return the updated category
-            return category;
+            return brand;
         }
 
 
         catch (error) {
             // Handle any errors that occur during user creation
             throw new Error(error.message);
-        }
-    },
-
-    delete: async (id) => {
-        try {
-            const result = await Category.destroy({ where: { id } });
-            return result > 0;
-        }
-        catch (error) {
-            throw error;
         }
     }
 };
