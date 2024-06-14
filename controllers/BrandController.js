@@ -90,19 +90,14 @@ const editSingleBrand = async (req, res) => {
 
     try {
         const { id } = req.params;
-
         const fields = req.body
         const file = req.file
-
         const updatedbrand = await brandService.editSingleBrand({ fields, id, file })
-
         if (updatedbrand.success) {
             res.status(200).json({ data: updatedbrand.data, success: true });
         } else {
             res.status(400).json({ error: updatedbrand.message, success: false });
         }
-
-
     }
     catch (error) {
         // Step 5: Handle any potential errors
@@ -142,13 +137,15 @@ const getSingleCat = async (req, res) => {
 const deleteSingleBrand = async (req, res) => {
     try {
         const { id } = req.params;
-        const getBrand = await brandService.getSingleBrand(id);
-        if (!getCat.success) {
+        console.log("Delete", id)
+        const IsBrand = await brandService.getSingleBrand(id);
+        if (!IsBrand) {
             // If the service returns an error, send a 400 response with the message
-            res.status(400).json({ success: false, message: result.message });
+            res.status(400).json({ success: false, message: 'Not Found id' });
         } else {
-            const deleteBrand = await brandService.deleteSingleBrand(getBrand)
-            res.status(200).json({ success: "DeleteSucess" });
+            const deleteBrand = await brandService.deleteSingleBrand(id)
+            if (deleteBrand)
+                res.status(200).json({ success: true, message: "Delete Brand Sucess" });
 
         }
     }

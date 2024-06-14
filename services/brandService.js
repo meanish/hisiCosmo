@@ -69,12 +69,16 @@ const getallBrand = async () => {
 
 
                 const featured_image_file = await MediaRepository.find(mediaData);
-                console.log("Image".featured_image_file)
-                featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.filePath} `;
-
+                console.log("Image", featured_image_file)
+                if (featured_image_file) {
+                    featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.dataValues.filePath}`;
+                }
+                else {
+                    featured_image = ""
+                }
                 return {
                     ...brand.dataValues,
-                    featured_image: featured_image ? featured_image : "",
+                    featured_image: featured_image,
                 };
             }));
 
@@ -169,7 +173,6 @@ const getSingleBrand = async (id) => {
             };
         };
 
-        // Assuming `id` is defined somewhere in your code as the root category id
         const BrandData = findBrandData(id);
 
         return BrandData;
@@ -180,10 +183,30 @@ const getSingleBrand = async (id) => {
 }
 
 
-const deleteSingleBrand = async (data) => {
-    console.log("whats to delete", data)
-    return data
-}
+const deleteSingleBrand = async (id) => {
+    const transaction = await sequelize.transaction();
+    try {
+        console.log("What to delete:", id);
+
+        // Delete the brand, associated Media will be deleted due to CASCADE delete
+        const result = await Brand.destroy({
+            where: { id },
+            transaction
+        });
+
+        await transaction.commit();
+
+        if (result) {
+            return { success: true, message: "Brand successfully deleted" };
+        } else {
+            return { success: false, message: "Brand not found or could not be deleted" };
+        }
+    } catch (error) {
+        await transaction.rollback();
+        console.error("Error deleting brand:", error);
+        return { success: false, message: "An error occurred while deleting the brand", error: error.message };
+    }
+};
 
 
 

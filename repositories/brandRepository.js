@@ -29,7 +29,7 @@ module.exports = {
         }
     },
 
-    update: async ({ id, parent_category_id, name, description }) => {
+    update: async ({ id, name, description }) => {
         console.log("What the id", id)
         try {
 
@@ -48,5 +48,18 @@ module.exports = {
             // Handle any errors that occur during user creation
             throw new Error(error.message);
         }
+    },
+
+    delete: async (id, transaction) => {
+
+        try {
+            const result = await Brand.destroy({ where: { id }, transaction });
+            return result > 0;
+        }
+        catch (error) {
+            throw error;
+        }
     }
+
+
 };

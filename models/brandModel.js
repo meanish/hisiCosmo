@@ -48,35 +48,34 @@ const Brand = sequelize.define('Brand', {
     },
 });
 
-
-
-// Define polymorphic association
 Brand.hasMany(Media, {
     foreignKey: 'mediaableId',
     constraints: false,
     scope: {
         mediaableType: 'brand'
     },
-    as: "brandMedia"
+    as: 'brandMedia',
+    onDelete: 'CASCADE'
 });
 
 Media.belongsTo(Brand, {
     foreignKey: 'mediaableId',
     constraints: false,
-    as: 'brandMediaable'
+    as: 'brandMediaable',
+    scope: {
+        mediaableType: 'brand'
+    },
+    onDelete: 'CASCADE'
 });
 
 
-
-sequelize.sync().then(() => {
-    sequelize.sync()
-        .then(() => {
-            console.log("Brand table synchronized successfully.");
-        })
-        .catch((error) => {
-            console.error('Failed to synchronize the Brand table:', error);
-        });
-})
+sequelize.sync()
+    .then(() => {
+        console.log("Brand table synchronized successfully.");
+    })
+    .catch((error) => {
+        console.error('Failed to synchronize the Brand table:', error);
+    });
 
 
 module.exports = Brand;

@@ -24,6 +24,8 @@ const path = require('path');
 
 
 
+
+
 app.use(express.json()); //if we get json as req then it accepts
 app.use(express.urlencoded({ extended: false })); //not only postman in live server too return json handles
 app.use(cors())

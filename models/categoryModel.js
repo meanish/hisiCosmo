@@ -81,7 +81,7 @@ Media.belongsTo(Category, {
 
 
 
-sequelize.sync().then(() => {
+
     sequelize.sync()
         .then(() => {
             console.log("Category table synchronized successfully.");
@@ -89,7 +89,6 @@ sequelize.sync().then(() => {
         .catch((error) => {
             console.error('Category to synchronize the User table:', error);
         });
-})
 
 
 module.exports = Category;

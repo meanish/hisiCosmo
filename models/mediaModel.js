@@ -40,6 +40,7 @@ const Media = sequelize.define('Media', {
     }
 });
 
+
 sequelize.sync().then(() => {
     sequelize.sync()
         .then(() => {
