@@ -48,6 +48,21 @@ module.exports = {
         } catch (error) {
             throw new Error(error.message);
         }
+    },
+    delete: async (mediaData) => {
+
+        try {
+            await Media.delete(mediaData, {
+                where: {
+                    mediaableId: mediaData.mediaableId,
+                    mediaableType: mediaData.mediaableType
+                },
+                ...options
+            });
+
+        } catch (error) {
+            throw new Error(error.message);
+        }
     }
 }
 
