@@ -221,6 +221,7 @@ const getSingleCat = async (id) => {
 
 
 const deleteSingleCat = async (id) => {
+    
     return CategoryRepository.delete(id)
 }
 
