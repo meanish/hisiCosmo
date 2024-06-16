@@ -1,18 +1,20 @@
 const bcrypt = require("bcryptjs");
 const userRepository = require("../repositories/registerRepository");
 const { validateUserData } = require("../schemas/userSchema");
+const { validateloginData } = require("../schemas/loginSchema");
+const loginRepository = require("../repositories/loginRepository");
+const jwt = require("jsonwebtoken")
 
 async function register(userData) {
+
+
+    console.log("users", userData)
     // Validate user data
-
-    console.log("UserData", userData)
-
     const validationErrors = validateUserData(userData);
-
-
     if (validationErrors) {
         throw new Error(JSON.stringify(validationErrors));
     }
+
 
     // Hash the password
     const hashedPassword = await hashPassword(userData.password);
@@ -23,6 +25,51 @@ async function register(userData) {
 }
 
 
+async function login(userData) {
+
+    const validationErrors = validateloginData(userData);
+    if (validationErrors) {
+        throw new Error(JSON.stringify(validationErrors));
+    }
+
+    const user = await loginRepository.store({ ...userData });
+
+    console.log("what is in the autherization", user)
+
+    if (!user) {
+        throw new Error(JSON.stringify({ email: ["No User found"] }));
+    }
+
+    else {
+        // Verify password
+        const passwordValid = await bcrypt.compare(userData.password, user.password);
+
+
+        if (!passwordValid) {
+            throw new Error(JSON.stringify({ password: ["Password doesnot match"] }));
+
+        }
+
+
+        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '15m' });
+
+        // console.log("Expires at", jwt_decode(token))
+
+
+        return ({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            accessToken: token,
+            role: user.role
+        });
+
+
+    }
+
+
+}
+
 
 async function hashPassword(password) {
     const salt = await bcrypt.genSalt(10);
@@ -32,4 +79,7 @@ async function hashPassword(password) {
 
 
 
-module.exports = { register };
+
+
+
+module.exports = { register, login };

@@ -3,6 +3,7 @@ const Validator = require("validatorjs");
 
 // Define user schema
 const userSchema = {
+  username: 'required|string|min:2|max:50',
   // firstname: 'required|string|min:2|max:255',
   // lastname: 'required|string|min:2|max:255',
   // address: 'required|string|min:2|max:255',
@@ -14,6 +15,9 @@ const userSchema = {
 
 
 const validationMessages = {
+  'username.required': 'Please enter a username',
+  'username.min': 'Name must be at least 2 characters',
+  'username.max': 'Name cannot exceed 50 characters',
   // 'firstname.required': 'Please enter a name',
   // 'firstname.min': 'Name must be at least 2 characters',
   // 'firstname.max': 'Name cannot exceed 255 characters',
