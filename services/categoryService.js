@@ -41,10 +41,10 @@ const createNew = async (req) => {
         }
 
         await transaction.commit();
-        return { ...category.dataValues, featured_image: `${featured_image}` };
+        return { success: true, data: { ...category.dataValues, featured_image: `${featured_image}` } };
 
     } catch (error) {
-        return { success: false, message: error.message };
+        return { success: false, message: "Couldn't create category" };
     }
 
 
@@ -57,23 +57,6 @@ const getallCat = async () => {
     try {
         const categories = await CategoryRepository.all();
         console.log("Categoris all", categories)
-
-        // const buildCategoryTree = (categories, parentId = null) => {
-        //     const categoryTree = categories
-        //         .filter(category => category.parent_category_id === parentId)
-        //         .map(category => {
-        //             const subcategories = buildCategoryTree(categories, category.id);
-        //             return {
-        //                 ...category.dataValues,
-        //                 subcategories: subcategories.length ? subcategories : null,
-        //             };
-        //         });
-        //     return categoryTree;
-        // };
-
-        // Build the category tree starting from the root (parent_category_id === null)
-        // const categoryTree = buildCategoryTree(category);
-
         const buildCategoryTree = async (categories) => {
 
             const getCategoryWithImage = async (category) => {
@@ -111,8 +94,8 @@ const getallCat = async () => {
         };
 
         // Build the category tree starting from the root (parent_category_id === null)
-        const categoryTree = buildCategoryTree(categories);
-        return categoryTree;
+        const categoryTree = await buildCategoryTree(categories);
+        return { success: true, data: categoryTree }
 
     } catch (error) {
         return { success: false, message: "Category failed" };
@@ -126,17 +109,6 @@ const editSingleCat = async ({ fields, id, file }) => {
     const transaction = await sequelize.transaction();
     const { parent_category_id, name, description } = fields;
     let featured_image_file
-    let slug
-
-    // try {
-    //     const category = await CategoryRepository.update(id, parent_category_id, name);
-    //     return category;
-
-    // } catch (error) {
-    //     return { success: false, message: "Category failed" };
-    // }
-
-
     try {
 
         if (file) {
@@ -179,50 +151,74 @@ const editSingleCat = async ({ fields, id, file }) => {
         const updatedCategory = await categoryRepository.update({ id, parent_category_id, name, description }, { transaction });
         await transaction.commit();
 
-        return { ...updatedCategory.dataValues, featured_image: `${featured_image}` };
+        return { success: true, data: { ...updatedCategory.dataValues, featured_image } }
 
     } catch (error) {
-        return { success: false, message: "Category failed" };
+        await transaction.rollback();
+        return { success: false, message: "Category update failed" };
     }
 
 }
 
 
 const getSingleCat = async (id) => {
+
     try {
         const categories = await CategoryRepository.all();
 
-        const findCategoryData = (id) => {
+        const findCategoryData = async (id) => {
             const category = categories.find(cat => cat.dataValues.id === +id);
 
             if (!category) {
                 return null;
             }
 
+
+            const mediaData = {
+                mediaableId: id,
+                mediaableType: 'category',
+            }
+
+
             const parentCategoryData = category.dataValues.parent_category_id
                 ? findCategoryData(category.dataValues.parent_category_id)
                 : null;
 
+
+            const featured_image_file = await MediaRepository.find(mediaData);
+            if (featured_image_file) {
+                featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.dataValues.filePath}`;
+            }
+            else {
+                featured_image = ""
+            }
             return {
                 ...category.dataValues,
+                featured_image: featured_image,
                 parentData: parentCategoryData,
             };
         };
 
         // Assuming `id` is defined somewhere in your code as the root category id
-        const categoryData = findCategoryData(id);
-
-        return categoryData;
+        const categoryData = await findCategoryData(id);
+        console.log("What is the cat Dta", categoryData)
+        return { success: true, data: categoryData }
 
     } catch (error) {
-        return { success: false, message: error.message };
+        return { success: false, message: error };
     }
 }
 
 
 const deleteSingleCat = async (id) => {
-    
-    return CategoryRepository.delete(id)
+    try {
+        const isDeleted = CategoryRepository.delete(id)
+        return { sucess: true, data: isDeleted }
+
+    }
+    catch (error) {
+        return { success: false, message: error };
+    }
 }
 
 

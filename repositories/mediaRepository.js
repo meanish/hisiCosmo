@@ -1,4 +1,4 @@
-
+const fs = require('fs')
 
 const Media = require("../models/mediaModel")
 module.exports = {
@@ -49,9 +49,13 @@ module.exports = {
             throw new Error(error.message);
         }
     },
-    delete: async (mediaData) => {
 
+    delete: async (mediaData) => {
+        const { filePath } = mediaData
         try {
+            await fs.unlink(filePath);
+            console.log(`File ${filePath} has been deleted.`);
+
             await Media.delete(mediaData, {
                 where: {
                     mediaableId: mediaData.mediaableId,
@@ -60,8 +64,9 @@ module.exports = {
                 ...options
             });
 
-        } catch (error) {
-            throw new Error(error.message);
+
+        } catch (err) {
+            console.error(err);
         }
     }
 }

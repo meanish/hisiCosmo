@@ -50,7 +50,7 @@ const Category = sequelize.define('Category', {
     underscored: true, // Use snake_case for column names
     hooks: {
         beforeValidate: (category, options) => {
-            if (category.parent_category_id === "0" || category.parent_category_id === "") {
+            if (category.parent_category_id === "0" || category.parent_category_id === "" || category.parent_category_id === "null") {
                 category.parent_category_id = null;
             }
             if (category.name) {
@@ -82,13 +82,13 @@ Media.belongsTo(Category, {
 
 
 
-    sequelize.sync()
-        .then(() => {
-            console.log("Category table synchronized successfully.");
-        })
-        .catch((error) => {
-            console.error('Category to synchronize the User table:', error);
-        });
+sequelize.sync()
+    .then(() => {
+        console.log("Category table synchronized successfully.");
+    })
+    .catch((error) => {
+        console.error('Category to synchronize the User table:', error);
+    });
 
 
 module.exports = Category;
