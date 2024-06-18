@@ -6,11 +6,11 @@ const upload = require("../utils/upload")
 
 
 
-router.post('/', upload.single('featured_image'), CategoryController.newCategory);
+router.post('/create', upload.single('featured_image'), CategoryController.newCategory);
 
-router.put('/:id', upload.single('featured_image'), CategoryController.editSingleCat);
+router.put('/edit/:id', upload.single('featured_image'), CategoryController.editSingleCat);
 
-router.delete("/:id", CategoryController.deleteSingleCategory)
+router.delete("/delete/:id", CategoryController.deleteSingleCategory)
 
 router.get("/", CategoryController.getAllCat);
 // router.post('/logout', authController.logout);

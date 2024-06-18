@@ -8,16 +8,16 @@ const BrandController = require("../controllers/BrandController")
 
 router.post('/create', upload.single('featured_image'), BrandController.createBrand);
 
-router.put('/:id', upload.single('featured_image'), BrandController.editSingleBrand);
+router.put('/edit/:id', upload.single('featured_image'), BrandController.editSingleBrand);
 
-router.delete("/:id", BrandController.deleteSingleBrand)
+router.delete("/delete/:id", BrandController.deleteSingleBrand)
 
 router.get("/", BrandController.getAllBrand);
 // router.post('/logout', authController.logout);
 
-router.get("/search", CategoryController.getInputCat)
+// router.get("/search", CategoryController.getInputCat)
 // router.post('/register', UserController.registerUser)
 
-router.get("/:id", CategoryController.getSingleCat)
+router.get("/:id", BrandController.getSingleBrand)
 
 module.exports = router

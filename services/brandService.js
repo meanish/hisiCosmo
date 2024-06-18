@@ -42,10 +42,12 @@ const createNew = async (req) => {
         }
 
         await transaction.commit();
-        return { ...brand.dataValues, featured_image: `${featured_image}` };
+        return { success: true, data: { ...brand.dataValues, featured_image: `${featured_image}` } };
 
     } catch (error) {
-        return { success: false, message: error.message };
+        return {
+            success: false, message: "Couldn't create a brand"
+        };
     }
 
 
@@ -90,7 +92,7 @@ const getallBrand = async () => {
 
 
     } catch (error) {
-        return { success: false, message: "Category failed" };
+        return { success: false, message: "Fetch brand failed" };
     }
 
 
@@ -175,10 +177,10 @@ const getSingleBrand = async (id) => {
 
         const BrandData = findBrandData(id);
 
-        return BrandData;
+        return { success: true, data: BrandData };
 
     } catch (error) {
-        return { success: false, message: error.message };
+        return { success: false, message: error };
     }
 }
 
@@ -186,14 +188,9 @@ const getSingleBrand = async (id) => {
 const deleteSingleBrand = async (id) => {
     const transaction = await sequelize.transaction();
     try {
-        console.log("What to delete:", id);
 
         // Delete the brand, associated Media will be deleted due to CASCADE delete
-        const result = await Brand.destroy({
-            where: { id },
-            transaction
-        });
-
+        const result = brandRepository.delete(id, transaction)
         await transaction.commit();
 
         if (result) {
@@ -203,8 +200,7 @@ const deleteSingleBrand = async (id) => {
         }
     } catch (error) {
         await transaction.rollback();
-        console.error("Error deleting brand:", error);
-        return { success: false, message: "An error occurred while deleting the brand", error: error.message };
+        return { success: false, message: error };
     }
 };
 

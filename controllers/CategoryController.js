@@ -1,5 +1,4 @@
 const categoryService = require("../services/categoryService")
-const formidable = require('formidable');
 
 const newCategory = async (req, res) => {
     try {
@@ -9,16 +8,15 @@ const newCategory = async (req, res) => {
             res.status(400).json({ success: false, error: result.message });
         } else {
             // If the service returns a success, send a 200 response with the data
-            res.status(200).json({ data: result.data, success: true });
+            res.status(200).json({ data: result, success: true });
         }
-
     } catch (error) {
         res.status(500).json({ success: false, error: error });
     }
 }
 
-const getAllCat = async (req, res) => {
 
+const getAllCat = async (req, res) => {
     try {
         const result = await categoryService.getallCat();
         if (!result.success) {
@@ -43,41 +41,21 @@ const getInputCat = async (req, res) => {
 
         const result = await categoryService.getallCat();
 
-
         if (result.success) {
             const findMatches = (categories, searchText) => {
                 let matches = [];
-
-
-
                 categories.forEach(category => {
-
                     if (category.name.toLowerCase().includes(searchText.toLowerCase())) {
                         matches.push({ name: category.name, id: category.id });
                     }
-
-
-                    // // recursion method 
-                    // if (category.subcategories && category.subcategories.length > 0) {
-                    //     matches = matches.concat(findMatches(category.subcategories, searchText));
-                    // }
-
-
                 });
-
                 return matches;
             };
-
             const matchingNames = findMatches(result.data, searchText);
             res.status(200).json({ data: matchingNames, sucess: true });
         }
-
-
-
     }
     catch (error) {
-        // Step 5: Handle any potential errors
-        console.error(error);
         res.status(500).json({ error: "An error occurred while processing your request" });
     }
 }
@@ -139,18 +117,19 @@ const deleteSingleCategory = async (req, res) => {
             // If the service returns an error, send a 400 response with the message
             res.status(400).json({ success: false, message: "Id not found" });
         } else {
+
             const deleteCat = await categoryService.deleteSingleCat(id)
             if (!deleteCat.success) {
                 // If the service returns an error, send a 400 response with the message
-                res.status(400).json({ success: false, error: result.message });
+                res.status(400).json({ success: false, error: deleteCat.message });
             } else {
                 // If the service returns a success, send a 200 response with the data
-                res.status(200).json({ data: result.data, message: "Delete Success", success: true });
+                res.status(200).json({ message: deleteCat.message, success: true });
             }
         }
     }
     catch (error) {
-        res.status(500).json({ error: "An error occurred to delete Category" });
+        res.status(500).json({ sucess: false, error: error });
     }
 }
 

@@ -1,5 +1,6 @@
 const Category = require("../models/categoryModel")
 const slugify = require('slugify');
+const mediaRepository = require("./mediaRepository");
 
 
 module.exports = {
@@ -50,9 +51,10 @@ module.exports = {
         }
     },
 
-    delete: async (id) => {
+    delete: async (id, options) => {
+
         try {
-            const result = await Category.destroy({ where: { id } });
+            const result = await Category.destroy({ where: { id }, ...options });
             return result > 0;
         }
         catch (error) {

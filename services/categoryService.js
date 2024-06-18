@@ -4,6 +4,7 @@ const slugify = require('slugify');
 const sequelize = require("../database/conn");
 const MediaRepository = require("../repositories/mediaRepository");
 const categoryRepository = require("../repositories/categoryRepository");
+const mediaRepository = require("../repositories/mediaRepository");
 
 
 
@@ -56,7 +57,6 @@ const getallCat = async () => {
 
     try {
         const categories = await CategoryRepository.all();
-        console.log("Categoris all", categories)
         const buildCategoryTree = async (categories) => {
 
             const getCategoryWithImage = async (category) => {
@@ -98,7 +98,7 @@ const getallCat = async () => {
         return { success: true, data: categoryTree }
 
     } catch (error) {
-        return { success: false, message: "Category failed" };
+        return { success: false, message: "Fetch category failed" };
     }
 
 
@@ -201,7 +201,6 @@ const getSingleCat = async (id) => {
 
         // Assuming `id` is defined somewhere in your code as the root category id
         const categoryData = await findCategoryData(id);
-        console.log("What is the cat Dta", categoryData)
         return { success: true, data: categoryData }
 
     } catch (error) {
@@ -209,15 +208,36 @@ const getSingleCat = async (id) => {
     }
 }
 
-
+// catServices
 const deleteSingleCat = async (id) => {
-    try {
-        const isDeleted = CategoryRepository.delete(id)
-        return { sucess: true, data: isDeleted }
+    const transaction = await sequelize.transaction();
 
+    const mediaData = {
+        mediaableId: id,
+        mediaableType: 'category',
     }
-    catch (error) {
-        return { success: false, message: error };
+
+    try {
+        const relatedMedia = await mediaRepository.find(mediaData);
+        console.log("Whats i hte relatedMedia", relatedMedia)
+
+        if (relatedMedia) {
+            // Delete the related media files
+            console.log("Found in th emedia hosus")
+            await mediaRepository.delete(mediaData, { transaction });
+        }
+        // Delete the brand, associated Media will be deleted due to CASCADE delete
+        const result = await CategoryRepository.delete(id, transaction)
+        if (result) {
+            await transaction.commit();
+            return { success: true, message: "Category successfully deleted" };
+        } else {
+            await transaction.rollback();
+            return { success: false, message: "Category not found or could not be deleted" };
+        }
+    } catch (error) {
+        await transaction.rollback();
+        return { success: false, error: error };
     }
 }
 
