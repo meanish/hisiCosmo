@@ -125,6 +125,8 @@ const editSingleCat = async ({ fields, id, file }) => {
 
 
             if (existingMedia) {
+                await mediaRepository.delete(mediaData, { purpose: "edit" }, { transaction });
+
                 // Update existing media
                 featured_image_file = await MediaRepository.update(mediaData, { transaction });
             } else {
@@ -219,11 +221,9 @@ const deleteSingleCat = async (id) => {
 
     try {
         const relatedMedia = await mediaRepository.find(mediaData);
-        console.log("Whats i hte relatedMedia", relatedMedia)
 
         if (relatedMedia) {
             // Delete the related media files
-            console.log("Found in th emedia hosus")
             await mediaRepository.delete(mediaData, { transaction });
         }
         // Delete the brand, associated Media will be deleted due to CASCADE delete

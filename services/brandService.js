@@ -5,6 +5,7 @@ const MediaRepository = require("../repositories/mediaRepository");
 const categoryRepository = require("../repositories/categoryRepository");
 const brandRepository = require("../repositories/brandRepository");
 const Brand = require("../models/brandModel");
+const mediaRepository = require("../repositories/mediaRepository");
 
 
 
@@ -120,8 +121,12 @@ const editSingleBrand = async ({ fields, id, file }) => {
 
 
             if (existingMedia) {
+                // Delete stored image first
+                await mediaRepository.delete(mediaData, { purpose: "edit" }, { transaction });
                 // Update existing media
                 featured_image_file = await MediaRepository.update(mediaData, { transaction });
+
+                console.log("What u retur in featured_image_file")
             } else {
                 // Create new media if it doesn't exist
                 featured_image_file = await MediaRepository.create(mediaData, { transaction });
@@ -146,7 +151,7 @@ const editSingleBrand = async ({ fields, id, file }) => {
         await transaction.commit();
 
         return {
-            sucess: true,
+            success: true,
             data: {
                 ...updatedBrand.dataValues, featured_image: `${featured_image}`
             }
@@ -160,22 +165,37 @@ const editSingleBrand = async ({ fields, id, file }) => {
 
 
 const getSingleBrand = async (id) => {
+    const mediaData = {
+        mediaableId: id,
+        mediaableType: 'brand',
+    }
+    let featured_image;
     try {
         const brands = await brandRepository.all();
 
-        const findBrandData = (id) => {
+        const findBrandData = async (id) => {
             const isAvailable = brands.find(currBrand => currBrand.dataValues.id === +id);
 
             if (!isAvailable) {
                 return null;
             }
 
+
+            const featured_image_file = await MediaRepository.find(mediaData);
+
+            if (featured_image_file) {
+                featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.dataValues.filePath}`;
+            }
+            else {
+                featured_image = ""
+            }
             return {
                 ...isAvailable.dataValues,
+                featured_image: featured_image,
             };
         };
 
-        const BrandData = findBrandData(id);
+        const BrandData = await findBrandData(id);
 
         return { success: true, data: BrandData };
 
@@ -187,21 +207,36 @@ const getSingleBrand = async (id) => {
 
 const deleteSingleBrand = async (id) => {
     const transaction = await sequelize.transaction();
-    try {
 
+    const mediaData = {
+        mediaableId: id,
+        mediaableType: 'brand',
+    }
+
+    try {
+        const relatedMedia = await mediaRepository.find(mediaData);
+
+        if (relatedMedia) {
+            // Delete the related media files
+
+            await mediaRepository.delete(mediaData, { transaction });
+        }
         // Delete the brand, associated Media will be deleted due to CASCADE delete
         const result = brandRepository.delete(id, transaction)
-        await transaction.commit();
 
         if (result) {
+            await transaction.commit();
             return { success: true, message: "Brand successfully deleted" };
-        } else {
+        }
+        else {
+            await transaction.rollback();
             return { success: false, message: "Brand not found or could not be deleted" };
         }
     } catch (error) {
         await transaction.rollback();
         return { success: false, message: error };
     }
+
 };
 
 

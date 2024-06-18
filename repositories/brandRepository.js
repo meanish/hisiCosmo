@@ -50,14 +50,14 @@ module.exports = {
         }
     },
 
-    delete: async (id, transaction) => {
+    delete: async (id, options) => {
 
         try {
-            const result = await Brand.destroy({ where: { id }, transaction });
+            const result = await Brand.destroy({ where: { id }, ...options });
             return result > 0;
         }
         catch (error) {
-            throw error;
+            throw new Error(error.message);
         }
     }
 

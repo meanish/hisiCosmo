@@ -27,7 +27,7 @@ module.exports = {
     },
 
     update: async (mediaData, options) => {
-
+        console.log("is updating")
         try {
             await Media.update(mediaData, {
                 where: {
@@ -48,7 +48,8 @@ module.exports = {
         }
     },
 
-    delete: async (mediaData, options) => {
+    delete: async (mediaData, purpose, options) => {
+        console.log("puopse", purpose)
         try {
             const relatedMedia = await Media.findAll({
                 where: {
@@ -58,28 +59,28 @@ module.exports = {
                 ...options
             });
 
-            console.log("RelatedMedia", relatedMedia)
 
             for (const media of relatedMedia) {
-                console.log("Console if fdound", media?.dataValues, "path also find", media?.dataValues?.filePath)
                 const filePath = media?.dataValues?.filePath
                 fs.unlink(filePath, (err) => {
                     if (err) {
                         console.error(`Error removing file: ${err}`);
                         return;
                     }
-                    console.log(`File ${filePath} has been successfully removed.`);
                 });
 
             }
 
-            await Media.destroy({
-                where: {
-                    mediaableId: mediaData.mediaableId,
-                    mediaableType: mediaData.mediaableType
-                },
-                ...options
-            });
+            if (purpose?.purpose != "edit") {
+                await Media.destroy({
+                    where: {
+                        mediaableId: mediaData.mediaableId,
+                        mediaableType: mediaData.mediaableType
+                    },
+                    ...options
+                });
+            }
+
 
 
         } catch (err) {
