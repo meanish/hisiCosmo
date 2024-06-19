@@ -46,7 +46,15 @@ const getInputCat = async (req, res) => {
                 let matches = [];
                 categories.forEach(category => {
                     if (category.name.toLowerCase().includes(searchText.toLowerCase())) {
-                        matches.push({ name: category.name, id: category.id });
+                        matches.push({ ...category });
+                    }
+                    if (category?.subcategories?.length > 0) {
+                        category.subcategories.map((childCat) => {
+                            if (childCat.name.toLowerCase().includes(searchText.toLowerCase())) {
+                                matches.push({ ...childCat });
+                            }
+                        })
+
                     }
                 });
                 return matches;

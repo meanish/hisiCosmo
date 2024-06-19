@@ -36,7 +36,7 @@ app.use("/auth", authRoutes)
 
 app.use("/category", categoriesRouter)
 
-app.use("/products", ProductRouter)
+app.use("/product", ProductRouter)
 
 console.log("pathname", __dirname)
 

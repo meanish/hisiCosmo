@@ -164,28 +164,26 @@ const editSingleCat = async ({ fields, id, file }) => {
 
 
 const getSingleCat = async (id) => {
-
+    let parentCategoryData = null;
     try {
         const categories = await CategoryRepository.all();
 
         const findCategoryData = async (id) => {
             const category = categories.find(cat => cat.dataValues.id === +id);
-
+            console.log("Finding for", id, category)
             if (!category) {
                 return null;
             }
-
 
             const mediaData = {
                 mediaableId: id,
                 mediaableType: 'category',
             }
 
+            if (category.dataValues?.parent_category_id) {
+                parentCategoryData = await findCategoryData(category.dataValues.parent_category_id)
 
-            const parentCategoryData = category.dataValues.parent_category_id
-                ? findCategoryData(category.dataValues.parent_category_id)
-                : null;
-
+            }
 
             const featured_image_file = await MediaRepository.find(mediaData);
             if (featured_image_file) {
@@ -194,6 +192,8 @@ const getSingleCat = async (id) => {
             else {
                 featured_image = ""
             }
+
+
             return {
                 ...category.dataValues,
                 featured_image: featured_image,

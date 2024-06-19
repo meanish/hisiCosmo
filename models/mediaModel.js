@@ -29,16 +29,18 @@ const Media = sequelize.define('Media', {
         type: DataTypes.STRING,
         allowNull: false
     }
-}, {
-    tableName: 'media',
-    timestamps: true,
-    underscored: true,
-    getterMethods: {
-        url() {
-            return this.path;
+},
+    {
+        tableName: 'media',
+        timestamps: true,
+        underscored: true,
+        getterMethods: {
+            url() {
+                return this.path;
+            }
         }
     }
-});
+);
 
 
 sequelize.sync().then(() => {

@@ -1,14 +1,17 @@
 const express = require('express');
 const ProductController = require('../controllers/ProductController');
+const upload = require('../utils/upload');
 const router = express.Router();
 
 
 
 
 
-router.post('/', ProductController.newProduct);
+router.post('/create', upload.single('featured_image'), ProductController.createnewProduct);
 
-// router.get("/", ProductController.getAllCat);
+router.get("/", ProductController.getAllProduct);
+
+
 // router.post('/logout', authController.logout);
 
 
