@@ -2,14 +2,14 @@ const productService = require("../services/productServices")
 
 
 const createnewProduct = async (req, res) => {
-    const { categoryId } = req.body
-    console.log("What", req.body, categoryId)
+    const { categoryIds } = req.body
     try {
         const result = await productService.createNew(req);
         if (result.success) {
             // adding the category in the productCategories Field
-            if (categoryId) {
-                isConnected = await productService.addCategoriesToProduct({ productId: result.data?.id, categoryId });
+            if (categoryIds && categoryIds.length > 0) {
+                console
+                isConnected = await productService.addCategoriesToProduct({ productId: result.data?.id, categoryIds });
                 console.group("Is Con", isConnected)
                 if (!isConnected.success) {
                     return res.status(500).json({ success: false, message: isConnected.message });
@@ -78,34 +78,33 @@ const getInputCat = async (req, res) => {
 }
 
 
-const editSingleCat = async (req, res) => {
+const editSingleProduct = async (req, res) => {
+    const { id } = req.params;
+    const fields = req.body
+    const file = req.file
 
     try {
-        const { id } = req.params;
+        const result = await productService.editSinglePro({ fields, id, file })
 
-        const fields = req.body
-        const file = req.file
-        const result = await categoryService.editSingleCat({ fields, id, file })
-
-        if (result.success) {
+        if (result?.success) {
             res.status(200).json({ data: result.data, success: true });
         } else {
-            res.status(500).json({ error: "An error occurred while processing your request", success: false });
+            res.status(500).json({ error: result.message, success: false });
         }
     } catch (error) {
-        res.status(500).json({ error: result.error, success: false });
+        res.status(500).json({ error: error, success: false });
     }
 }
 
 
 
 
-const getSingleCat = async (req, res) => {
+const getSingleProduct = async (req, res) => {
 
     try {
         const { id } = req.params;
 
-        const result = await categoryService.getSingleCat(id);
+        const result = await productService.getSingleProduct(id);
         console.log("Result ", result)
 
         if (!result.success) {
@@ -157,5 +156,7 @@ const deleteSingleCategory = async (req, res) => {
 
 module.exports = {
     createnewProduct,
-    getAllProduct
+    getAllProduct,
+    getSingleProduct,
+    editSingleProduct
 };

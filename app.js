@@ -19,6 +19,7 @@ const categoriesRouter = require("./routes/categoriesRoutes")
 const authRoutes = require("./routes/authRoutes");
 require("./database/conn")
 const path = require('path');
+const sequelize = require("./database/conn");
 
 
 
@@ -60,8 +61,19 @@ app.use("/login", LoginRouter)
 
 // ..................DEPLOYEMENT......................
 
-app.listen(PORT, "127.0.0.1", () => {
-    console.log('Server listening on port ' + PORT);
-});
 
+const startServer = async () => {
+    try {
+        await sequelize.sync({ force: false }); // Use force: true only for development, as it will drop tables
+        console.log('Database synchronized successfully.');
+
+        app.listen(PORT, "127.0.0.1", () => {
+            console.log('Server listening on port ' + PORT);
+        });
+    } catch (error) {
+        console.error('Unable to synchronize the database:', error);
+    }
+};
+
+startServer();
 

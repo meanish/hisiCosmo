@@ -18,8 +18,8 @@ module.exports = {
     },
 
 
-    addCategories: async (productId, categoryId) => {
-        console.log("add to cat", productId, categoryId)
+    addCategories: async (productId, categoryIds, options) => {
+        console.log("add to cat", productId, categoryIds, typeof categoryIds)
         try {
             const product = await Product.findByPk(productId);
 
@@ -27,18 +27,55 @@ module.exports = {
                 throw new Error(`Product with ID ${productId} not found`);
             }
 
-            // Find the category by its primary key
-            const category = await Category.findByPk(categoryId);
-            if (!category) {
-                throw new Error(`Category with ID ${categoryId} not found`);
+            const categories = [];
+            categoryIds = JSON.parse(categoryIds).map(Number);
+            // Iterate over each categoryId and fetch the corresponding category
+            for (const categoryId of categoryIds) {
+                console.log(categoryId)
+                const category = await Category.findByPk(categoryId, { transaction: options.transaction });
+
+                if (!category) {
+                    throw new Error(`Category with ID ${categoryId} not found`);
+                }
+
+                categories.push(category);
             }
-            return await product.addCategory(category, { through: { selfGranted: false } });
+
+
+            console.log('Catgeories', categories)
+            if (categories.length !== categoryIds.length) {
+                throw new Error(`One or more categories with IDs ${categoryIds} not found`);
+            }
+            return await product.addCategory(categories, { through: { selfGranted: false } });
         }
         catch (error) {
             // Handle any errors that occur during user creation
             throw new Error(error.message);
         }
     },
+
+    // setCategories: async (productId, categoryId) => {
+    //     console.log("add to cat", productId, categoryId)
+    //     try {
+    //         const product = await Product.findByPk(productId);
+
+    //         if (!product) {
+    //             throw new Error(`Product with ID ${productId} not found`);
+    //         }
+
+    //         // Find the category by its primary key
+    //         const category = await Category.findByPk(categoryId);
+    //         if (!category) {
+    //             throw new Error(`Category with ID ${categoryId} not found`);
+    //         }
+    //         return await product.addCategory(category, { through: { selfGranted: false } });
+    //     }
+    //     catch (error) {
+    //         // Handle any errors that occur during user creation
+    //         throw new Error(error.message);
+    //     }
+    // },
+
 
 
     all: async () => {
@@ -51,27 +88,23 @@ module.exports = {
         }
     },
 
-    update: async ({ id, parent_category_id, name, description }) => {
-        console.log("What the id", id)
+    update: async (id, fields, options) => {
         try {
+            const product = await Product.findByPk(id);
 
-            const category = await Category.findByPk(id);
-            category.name = name;
-            category.slug = slugify(name, { lower: true, strict: true });
-            category.parent_category_id = parent_category_id;
-            category.description = description;
-            await category.save();
+            if (!product) {
+                throw new Error(`Product with ID ${id} not found`);
+            }
 
-            // Return the updated category
-            return category;
-        }
+            await product.update(fields, options)
+            return product;
 
-
-        catch (error) {
-            // Handle any errors that occur during user creation
+        } catch (error) {
+            console.error('Error in ProductRepository.update:', error.message);
             throw new Error(error.message);
         }
     },
+
 
     delete: async (id, options) => {
 

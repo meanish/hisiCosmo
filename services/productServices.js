@@ -1,8 +1,10 @@
 const ProductRepository = require("../repositories/productRepository")
-const Product = require("../models/productsModel");
 const sequelize = require("../database/conn");
 const slugify = require("slugify");
 const mediaRepository = require("../repositories/mediaRepository");
+const { Product, Media, Category } = require("../models/association");
+const mediaTask = require("../helper/mediaTask");
+const productRepository = require("../repositories/productRepository");
 
 
 const createNew = async (req) => {
@@ -53,17 +55,19 @@ const createNew = async (req) => {
 }
 
 
-const addCategoriesToProduct = async ({ productId, categoryId }) => {
+const addCategoriesToProduct = async ({ productId, categoryIds }) => {
+    const transaction = await sequelize.transaction();
+
     try {
-        const proCatData = await ProductRepository.addCategories(productId, categoryId);
+        const proCatData = await ProductRepository.addCategories(productId, categoryIds, { transaction });
+        await transaction.commit();
         return { success: true, data: proCatData };
 
     } catch (error) {
+        await transaction.rollback();
         console.log('What iss wrong', error)
         return { success: false, message: error.message };
     }
-
-
 }
 
 
@@ -74,7 +78,7 @@ const getallProduct = async () => {
     try {
         const products = await ProductRepository.all();
         console.log("P", products)
-        return { success: true, data: products.dataValues ? products.dataValues : [] }
+        return { success: true, data: products }
         // const buildCategoryTree = async (categories) => {
 
         //     const getCategoryWithImage = async (category) => {
@@ -123,87 +127,75 @@ const getallProduct = async () => {
 }
 
 
-const editSingleCat = async ({ fields, id, file }) => {
+const editSinglePro = async ({ fields, id, file }) => {
     const transaction = await sequelize.transaction();
-    const { parent_category_id, name, description } = fields;
-    let featured_image_file
+    const mediaType = "product"
+    let { categoryIds } = fields
+    console.log("hyp[o", typeof categoryIds)
+    let categories = [];
+
     try {
 
-        if (file) {
-            // If there's a new file, update the featured_image in the Media table
-            const mediaData = {
-                mediaableId: id,
-                mediaableType: 'category',
-                filePath: file.path,
-                fileType: file.mimetype
-            };
-            // Find the existing featured_image
-            const existingMedia = await MediaRepository.find(mediaData);
+
+        let featured_image = await mediaTask(id, file, mediaType, { transaction })
+        console.log("Image", featured_image)
+
+        const updatedProduct = await productRepository.update(id, fields, { transaction });
+        categoryIds = JSON.parse(categoryIds).map(Number);
 
 
+        // Iterate over each categoryId and fetch the corresponding category
+        for (const categoryId of categoryIds) {
+            console.log("Delta", categoryId)
+            const category = await Category.findByPk(categoryId, { transaction });
 
-            if (existingMedia) {
-                await mediaRepository.delete(mediaData, { purpose: "edit" }, { transaction });
-
-                // Update existing media
-                featured_image_file = await MediaRepository.update(mediaData, { transaction });
-            } else {
-                // Create new media if it doesn't exist
-                featured_image_file = await MediaRepository.create(mediaData, { transaction });
-
+            if (!category) {
+                throw new Error(`Category with ID ${categoryId} not found`);
             }
 
-            featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.filePath} `;
-
+            categories.push(category);
         }
-        else {
-            // If there's no new file, get the existing featured_image if it exists
-            const existingMedia = await MediaRepository.find({ mediaableId: id, mediaableType: 'category' });
-            if (existingMedia) {
-                featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${existingMedia.filePath}`;
-            }
-            else {
-                featured_image = "";
-
-            }
-        }
-
-        const updatedCategory = await categoryRepository.update({ id, parent_category_id, name, description }, { transaction });
+        await updatedProduct.setCategories(categories, { transaction });
         await transaction.commit();
-
-        return { success: true, data: { ...updatedCategory.dataValues, featured_image } }
+        return { success: true, data: { ...updatedProduct.dataValues, featured_image: featured_image } };
 
     } catch (error) {
         await transaction.rollback();
-        return { success: false, message: "Category update failed" };
+        console.log("Error", error)
+        return { success: false, message: error.message };
     }
 
 }
 
 
-const getSingleCat = async (id) => {
-    let parentCategoryData = null;
+const getSingleProduct = async (id) => {
     try {
-        const categories = await CategoryRepository.all();
+        const ProdWCatData = async (id) => {
+            // Find the product by id and include related categories
+            const product = await Product.findByPk(id, {
+                include: [
+                    {
+                        model: Category,
+                        as: 'categories',
+                        through: { attributes: [] },
+                    }
+                    //     ,
+                    //     {
+                    //         model: Media,
+                    //         as: 'productMedia',
+                    //     },
+                ],
+            });
 
-        const findCategoryData = async (id) => {
-            const category = categories.find(cat => cat.dataValues.id === +id);
-            console.log("Finding for", id, category)
-            if (!category) {
-                return null;
+            if (!product) {
+                return { success: false, message: `Product with ID ${id} not found` };
             }
 
             const mediaData = {
                 mediaableId: id,
-                mediaableType: 'category',
+                mediaableType: 'product',
             }
-
-            if (category.dataValues?.parent_category_id) {
-                parentCategoryData = await findCategoryData(category.dataValues.parent_category_id)
-
-            }
-
-            const featured_image_file = await MediaRepository.find(mediaData);
+            const featured_image_file = await mediaRepository.find(mediaData)
             if (featured_image_file) {
                 featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.dataValues.filePath}`;
             }
@@ -213,15 +205,14 @@ const getSingleCat = async (id) => {
 
 
             return {
-                ...category.dataValues,
+                ...product.get({ plain: true }),
                 featured_image: featured_image,
-                parentData: parentCategoryData,
             };
         };
 
         // Assuming `id` is defined somewhere in your code as the root category id
-        const categoryData = await findCategoryData(id);
-        return { success: true, data: categoryData }
+        const productData = await ProdWCatData(id);
+        return { success: true, data: productData }
 
     } catch (error) {
         return { success: false, message: error };
@@ -265,6 +256,8 @@ const deleteSingleCat = async (id) => {
 module.exports = {
     createNew,
     addCategoriesToProduct,
-    getallProduct
+    getallProduct,
+    getSingleProduct,
+    editSinglePro
 
 };

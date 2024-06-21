@@ -17,9 +17,7 @@ module.exports = {
     find: async (mediaData) => {
         const { mediaableId, mediaableType } = mediaData
         try {
-            const isAvailable = await Media.findOne({ where: { mediaableId: mediaableId, mediaableType: mediaableType } });
-            return isAvailable
-
+            return await Media.findOne({ where: { mediaableId: mediaableId, mediaableType: mediaableType } });
         } catch (error) {
             // Handle any errors that occur during user creation
             throw new Error(error.message);
@@ -27,20 +25,14 @@ module.exports = {
     },
 
     update: async (mediaData, options) => {
-        console.log("is updating")
+        console.log("is updating", mediaData)
         try {
-            await Media.update(mediaData, {
+            return await Media.update(mediaData, {
                 where: {
                     mediaableId: mediaData.mediaableId,
                     mediaableType: mediaData.mediaableType
                 },
                 ...options
-            });
-            return await Media.findOne({
-                where: {
-                    mediaableId: mediaData.mediaableId,
-                    mediaableType: mediaData.mediaableType
-                }
             });
 
         } catch (error) {
@@ -49,7 +41,6 @@ module.exports = {
     },
 
     delete: async (mediaData, purpose, options) => {
-        console.log("puopse", purpose)
         try {
             const relatedMedia = await Media.findAll({
                 where: {

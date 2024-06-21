@@ -59,26 +59,26 @@ const Product = sequelize.define('Product', {
 });
 
 
-// Define polymorphic association
-Product.hasMany(Media, {
-    onDelete: 'CASCADE',
-    foreignKey: 'mediaableId',
-    constraints: false,
-    scope: {
-        mediaableType: 'product'
-    },
-    as: 'productMedia'
-});
+// // Define polymorphic association
+// Product.hasMany(Media, {
+//     onDelete: 'CASCADE',
+//     foreignKey: 'mediaableId',
+//     constraints: false,
+//     scope: {
+//         mediaableType: 'product'
+//     },
+//     as: 'productMedia'
+// });
 
-Media.belongsTo(Product, {
-    foreignKey: 'mediaableId',
-    constraints: false,
-    as: 'Productmediaable'
-});
+// Media.belongsTo(Product, {
+//     foreignKey: 'mediaableId',
+//     constraints: false,
+//     as: 'Productmediaable'
+// });
 
 
-Product.belongsToMany(Category, { through: 'ProductCategories', as: 'categories' });
-Category.belongsToMany(Product, { through: 'ProductCategories', as: 'products' });
+// Product.belongsToMany(Category, { through: 'ProductCategories', as: 'categories' });
+// Category.belongsToMany(Product, { through: 'ProductCategories', as: 'products' });
 
 sequelize.sync().then(() => {
     sequelize.sync()

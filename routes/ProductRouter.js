@@ -12,6 +12,10 @@ router.post('/create', upload.single('featured_image'), ProductController.create
 router.get("/", ProductController.getAllProduct);
 
 
+router.get("/:id", ProductController.getSingleProduct)
+
+router.put("/edit/:id", upload.single('featured_image'), ProductController.editSingleProduct)
+
 // router.post('/logout', authController.logout);
 
 
