@@ -13,7 +13,7 @@ const RegisterRouter = require("./routes/RegisterRouter")
 const ProductRouter = require("./routes/ProductRouter")
 const ImageUploadRouter = require("./routes/imageUploadRoutes")
 const BrandRouter = require("./routes/BrandRouter")
-
+const StatusController = require("./controllers/StatusController")
 const categoriesRouter = require("./routes/categoriesRoutes")
 
 const authRoutes = require("./routes/authRoutes");
@@ -45,6 +45,7 @@ app.use("/upload_image", ImageUploadRouter)
 
 app.use("/brand", BrandRouter)
 
+app.get("/status", StatusController.getAllStatus)
 router.get("/", (req, res) => {
     res.send("Home Page Here")
 });

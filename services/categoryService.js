@@ -5,6 +5,7 @@ const sequelize = require("../database/conn");
 const MediaRepository = require("../repositories/mediaRepository");
 const categoryRepository = require("../repositories/categoryRepository");
 const mediaRepository = require("../repositories/mediaRepository");
+const mediaTask = require("../helper/mediaTask");
 
 
 
@@ -45,7 +46,7 @@ const createNew = async (req) => {
         return { success: true, data: { ...category.dataValues, featured_image: `${featured_image}` } };
 
     } catch (error) {
-        return { success: false, message: "Couldn't create category" };
+        return { success: false, message: error.message };
     }
 
 
@@ -107,57 +108,20 @@ const getallCat = async () => {
 
 const editSingleCat = async ({ fields, id, file }) => {
     const transaction = await sequelize.transaction();
-    const { parent_category_id, name, description } = fields;
-    let featured_image_file
+    const { parent_category_id, name, description, featured_image } = fields;
+    let mediaType = "category"
+
     try {
 
-        if (file) {
-            // If there's a new file, update the featured_image in the Media table
-            const mediaData = {
-                mediaableId: id,
-                mediaableType: 'category',
-                filePath: file.path,
-                fileType: file.mimetype
-            };
-            // Find the existing featured_image
-            const existingMedia = await MediaRepository.find(mediaData);
-
-
-
-            if (existingMedia) {
-                await mediaRepository.delete(mediaData, { purpose: "edit" }, { transaction });
-
-                // Update existing media
-                featured_image_file = await MediaRepository.update(mediaData, { transaction });
-            } else {
-                // Create new media if it doesn't exist
-                featured_image_file = await MediaRepository.create(mediaData, { transaction });
-
-            }
-
-            featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.filePath} `;
-
-        }
-        else {
-            // If there's no new file, get the existing featured_image if it exists
-            const existingMedia = await MediaRepository.find({ mediaableId: id, mediaableType: 'category' });
-            if (existingMedia) {
-                featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${existingMedia.filePath}`;
-            }
-            else {
-                featured_image = "";
-
-            }
-        }
-
+        let featured_image = await mediaTask(id, file, mediaType, fields, { transaction })
         const updatedCategory = await categoryRepository.update({ id, parent_category_id, name, description }, { transaction });
         await transaction.commit();
 
-        return { success: true, data: { ...updatedCategory.dataValues, featured_image } }
+        return { success: true, data: { ...updatedCategory.dataValues, featured_image: featured_image } }
 
     } catch (error) {
         await transaction.rollback();
-        return { success: false, message: "Category update failed" };
+        return { success: false, message: error.message };
     }
 
 }

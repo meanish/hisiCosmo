@@ -1,12 +1,14 @@
 const mediaRepository = require("../repositories/mediaRepository");
 
 
-const mediaTask = async (id, file, mediaType, options) => {
+const mediaTask = async (id, file, mediaType, fields, options) => {
+
+    let featured_image_path
+    const { featured_image } = fields
 
 
-
-    // If there's a new file, update the featured_image in the Media table
     if (file) {
+        // If there's a new file, update the featured_image in the Media table
         const mediaData = {
             mediaableId: id,
             mediaableType: mediaType,
@@ -16,36 +18,98 @@ const mediaTask = async (id, file, mediaType, options) => {
         // Find the existing featured_image
         const existingMedia = await mediaRepository.find(mediaData);
 
-
-
         if (existingMedia) {
+            // Delete stored image first
             await mediaRepository.delete(mediaData, { purpose: "edit" }, { options });
-
             // Update existing media
-            featured_image_file = await mediaRepository.update(mediaData, { options });
+            isUpdated = await mediaRepository.update(mediaData, { options });
+            console.log("What is updated", isUpdated)
+            if (isUpdated) {
+                featured_image_file = await mediaRepository.find(mediaData,
+                    { options }
+                )
+            }
         } else {
             // Create new media if it doesn't exist
             featured_image_file = await mediaRepository.create(mediaData, { options });
 
         }
 
-        featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.filePath} `;
+        featured_image_path = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.filePath} `;
+
+    } else if (featured_image === null) {
+        console.log("NUll in image")
+        // If featured_image is explicitly set to null, delete the media entry
+        const existingMedia = await mediaRepository.find({
+            mediaableId: id,
+            mediaableType: mediaType
+        });
+
+        if (existingMedia) {
+            // Delete the media entry
+            await mediaRepository.delete({
+                mediaableId: id,
+                mediaableType: mediaType
+            }, { options });
+
+            featured_image_path = "";
+        }
     }
-
-
     else {
         // If there's no new file, get the existing featured_image if it exists
-        const existingMedia = await mediaRepository.find({ mediaableId: id, mediaableType: mediaType });
+        const existingMedia = await mediaRepository.find({
+            mediaableId: id,
+            mediaableType: mediaType
+        });
+        console.log("Did setr image now find one", existingMedia)
         if (existingMedia) {
-            featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${existingMedia.filePath}`;
+            featured_image_path = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${existingMedia.filePath}`;
         }
         else {
-            featured_image = "";
-
+            featured_image_path = "";
         }
     }
+    // If there's a new file, update the featured_image in the Media table
+    // if (file) {
+    //     const mediaData = {
+    //         mediaableId: id,
+    //         mediaableType: mediaType,
+    //         filePath: file.path,
+    //         fileType: file.mimetype
+    //     };
+    //     // Find the existing featured_image
+    //     const existingMedia = await mediaRepository.find(mediaData);
 
-    return featured_image;
+
+
+    //     if (existingMedia) {
+    //         await mediaRepository.delete(mediaData, { purpose: "edit" }, { options });
+
+    //         // Update existing media
+    //         featured_image_file = await mediaRepository.update(mediaData, { options });
+    //     } else {
+    //         // Create new media if it doesn't exist
+    //         featured_image_file = await mediaRepository.create(mediaData, { options });
+
+    //     }
+
+    //     featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.filePath} `;
+    // }
+
+
+    // else {
+    //     // If there's no new file, get the existing featured_image if it exists
+    //     const existingMedia = await mediaRepository.find({ mediaableId: id, mediaableType: mediaType });
+    //     if (existingMedia) {
+    //         featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${existingMedia.filePath}`;
+    //     }
+    //     else {
+    //         featured_image = "";
+
+    //     }
+    // }
+
+    return featured_image_path;
 }
 
 module.exports = mediaTask

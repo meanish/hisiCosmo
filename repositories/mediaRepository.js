@@ -14,6 +14,13 @@ module.exports = {
             throw new Error(error.message);
         }
     },
+    bulkCreate: async (mediaArray, options) => {
+        try {
+            return await Media.bulkCreate(mediaArray, options);
+        } catch (error) {
+            throw new Error('Error creating media entries in bulk');
+        }
+    },
     find: async (mediaData) => {
         const { mediaableId, mediaableType } = mediaData
         try {

@@ -8,7 +8,7 @@ const createnewProduct = async (req, res) => {
         if (result.success) {
             // adding the category in the productCategories Field
             if (categoryIds && categoryIds.length > 0) {
-                console
+
                 isConnected = await productService.addCategoriesToProduct({ productId: result.data?.id, categoryIds });
                 console.group("Is Con", isConnected)
                 if (!isConnected.success) {

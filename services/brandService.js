@@ -6,6 +6,7 @@ const categoryRepository = require("../repositories/categoryRepository");
 const brandRepository = require("../repositories/brandRepository");
 const Brand = require("../models/brandModel");
 const mediaRepository = require("../repositories/mediaRepository");
+const mediaTask = require("../helper/mediaTask");
 
 
 
@@ -103,76 +104,12 @@ const getallBrand = async () => {
 const editSingleBrand = async ({ fields, id, file }) => {
     const transaction = await sequelize.transaction();
     const { name, description, featured_image } = fields;
-    let featured_image_file
-    let featured_image_path
-    console.log("File", file, featured_image)
+    let mediaType = "brand"
     try {
 
-        if (file) {
-            // If there's a new file, update the featured_image in the Media table
-            const mediaData = {
-                mediaableId: id,
-                mediaableType: 'brand',
-                filePath: file.path,
-                fileType: file.mimetype
-            };
-            // Find the existing featured_image
-            const existingMedia = await MediaRepository.find(mediaData);
+        let featured_image_path = await mediaTask(id, file, mediaType, fields, { transaction })
 
 
-
-            if (existingMedia) {
-                // Delete stored image first
-                await mediaRepository.delete(mediaData, { purpose: "edit" }, { transaction });
-                // Update existing media
-                isUpdated = await MediaRepository.update(mediaData, { transaction });
-                console.log("What is updated", isUpdated)
-                if (isUpdated) {
-                    featured_image_file = await MediaRepository.find(mediaData,
-                        { transaction }
-                    )
-                }
-                console.log("What u retur in New updated featured_image_file", featured_image_file)
-            } else {
-                // Create new media if it doesn't exist
-                featured_image_file = await MediaRepository.create(mediaData, { transaction });
-
-            }
-
-            featured_image_path = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.filePath} `;
-
-        } else if (featured_image === "null") {
-            console.log("NUll in image")
-            // If featured_image is explicitly set to null, delete the media entry
-            const existingMedia = await MediaRepository.find({
-                mediaableId: id,
-                mediaableType: 'brand'
-            });
-
-            if (existingMedia) {
-                // Delete the media entry
-                await mediaRepository.delete({
-                    mediaableId: id,
-                    mediaableType: 'brand'
-                }, { transaction });
-
-                featured_image_path = "";
-            }
-        }
-        else {
-            // If there's no new file, get the existing featured_image if it exists
-            const existingMedia = await MediaRepository.find({
-                mediaableId: id,
-                mediaableType: 'brand'
-            });
-            console.log("Did setr image now find one", existingMedia)
-            if (existingMedia) {
-                featured_image_path = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${existingMedia.filePath}`;
-            }
-            else {
-                featured_image_path = "";
-            }
-        }
 
         const updatedBrand = await brandRepository.update({ id, name, description }, { transaction });
         await transaction.commit();

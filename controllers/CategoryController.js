@@ -8,7 +8,7 @@ const newCategory = async (req, res) => {
             res.status(400).json({ success: false, error: result.message });
         } else {
             // If the service returns a success, send a 200 response with the data
-            res.status(200).json({ data: result, success: true });
+            res.status(200).json({ data: result.data, success: true });
         }
     } catch (error) {
         res.status(500).json({ success: false, error: error });
@@ -81,7 +81,7 @@ const editSingleCat = async (req, res) => {
         if (result.success) {
             res.status(200).json({ data: result.data, success: true });
         } else {
-            res.status(500).json({ error: "An error occurred while processing your request", success: false });
+            res.status(500).json({ error: result.message, success: false });
         }
     } catch (error) {
         res.status(500).json({ error: result.error, success: false });

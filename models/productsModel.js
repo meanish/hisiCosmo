@@ -3,6 +3,7 @@ const sequelize = require('../database/conn');
 const Media = require('./mediaModel');
 const { default: slugify } = require('slugify');
 const Category = require('./categoryModel');
+const Brand = require('./brandModel');
 
 const Product = sequelize.define('Product', {
     id: {
@@ -41,6 +42,25 @@ const Product = sequelize.define('Product', {
     price: {
         type: DataTypes.FLOAT,
         allowNull: false,
+    },
+    brand_id: { // Add brandId as a foreign key
+        type: DataTypes.INTEGER,
+        references: {
+            model: Brand,
+            key: 'id'
+        }
+    },
+    discount: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+    },
+    discount_start: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    discount_end: {
+        type: DataTypes.DATE,
+        allowNull: true,
     },
 }, {
     tableName: 'products',

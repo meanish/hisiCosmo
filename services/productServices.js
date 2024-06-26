@@ -10,10 +10,8 @@ const productRepository = require("../repositories/productRepository");
 const createNew = async (req) => {
     const transaction = await sequelize.transaction();
     const proData = req.body
-    const file = req.file;
+    const { featured_image, product_gallery } = req.files;
 
-
-    console.log("pr", proData, file)
     try {
         if (proData.name) {
             proData.slug = slugify(proData.name, { lower: true, strict: true });
@@ -28,23 +26,40 @@ const createNew = async (req) => {
 
         const product = await ProductRepository.create(proData, { transaction });
         console.log("What you return in product", product)
-        let featured_image = ""
+        let featured_image_path = ""
 
-        if (file) {
+        if (featured_image) {
             const mediaData = {
                 mediaableId: product.id,
                 mediaableType: 'product',
-                filePath: file.path,
-                fileType: file.mimetype
+                filePath: featured_image[0].path,
+                fileType: featured_image[0].mimetype
             };
 
             const featured_image_file = await mediaRepository.create(mediaData, { transaction });
-            featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.filePath} `;
+            featured_image_path = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.filePath} `;
+        }
+
+        if (product_gallery) {
+            const galleryEntries = product_gallery.map(file => ({
+                mediaableId: id,
+                mediaableType: 'product',
+                filePath: file.path,
+                fileType: file.mimetype
+            }));
+
+            const gallary_paths = await mediaRepository.bulkCreate(galleryEntries, { transaction });
+            let paths = gallary_paths.map(currPath => {
+                return `${process.env.NEXT_PUBLIC_HISI_SERVER}/${currPath.filePath}`;
+            });
+
+
+            console.log("Paths for all the product gallery images", paths)
         }
 
 
         await transaction.commit();
-        return { success: true, data: { ...product.dataValues, featured_image: `${featured_image}` } };
+        return { success: true, data: { ...product.dataValues, featured_image: `${featured_image_path}` } };
 
     } catch (error) {
         await transaction.rollback();
@@ -78,45 +93,40 @@ const getallProduct = async () => {
     try {
         const products = await ProductRepository.all();
         console.log("P", products)
-        return { success: true, data: products }
-        // const buildCategoryTree = async (categories) => {
 
-        //     const getCategoryWithImage = async (category) => {
-        //         const mediaData = {
-        //             mediaableId: category.id,
-        //             mediaableType: 'category',
-        //         };
+        const buildProductTree = async (products) => {
+            const getProductWithImage = async (product) => {
+                const mediaData = {
+                    mediaableId: product.id,
+                    mediaableType: 'product',
+                };
 
-        //         const featured_image_file = await MediaRepository.find(mediaData);
-        //         const featured_image = featured_image_file ? `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.filePath}` : "";
+                const featured_image_file = await mediaRepository.find(mediaData);
+                const featured_image = featured_image_file ? `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.filePath}` : "";
 
-        //         return {
-        //             ...category.dataValues,
-        //             featured_image,
-        //         };
+                return {
+                    ...product.dataValues,
+                    featured_image,
+                };
+            };
 
-        //     };
+            // Map each product to its corresponding product with image
+            const productsWithImagesPromises = products.map(async (product) => {
+                return await getProductWithImage(product);
+            });
 
-        //     const categoryTree = await Promise.all(categories
-        //         .filter(category => category.parent_category_id === null)
-        //         .map(async (category) => {
-        //             const subCategories = await Promise.all(categories
-        //                 .filter(sub => sub.parent_category_id === category.id)
-        //                 .map(getCategoryWithImage)
-        //             );
+            // Wait for all promises to resolve
+            const productsWithImages = await Promise.all(productsWithImagesPromises);
 
-        //             const categoryWithImage = await getCategoryWithImage(category);
-        //             return {
-        //                 ...categoryWithImage,
-        //                 subcategories: subCategories,
-        //             };
-        //         }));
+            return productsWithImages;
+        };
 
-        //     return categoryTree;
-        // };
+
+
 
         // Build the category tree starting from the root (parent_category_id === null)
-        // const categoryTree = await buildCategoryTree(categories);
+        const productTree = await buildProductTree(products);
+        return { success: true, data: productTree }
 
 
     } catch (error) {
@@ -131,13 +141,13 @@ const editSinglePro = async ({ fields, id, file }) => {
     const transaction = await sequelize.transaction();
     const mediaType = "product"
     let { categoryIds } = fields
-    console.log("hyp[o", typeof categoryIds)
+    console.log("hypo", typeof categoryIds)
     let categories = [];
 
     try {
 
 
-        let featured_image = await mediaTask(id, file, mediaType, { transaction })
+        let featured_image = await mediaTask(id, file, mediaType, fields, { transaction })
         console.log("Image", featured_image)
 
         const updatedProduct = await productRepository.update(id, fields, { transaction });
