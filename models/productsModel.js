@@ -45,10 +45,13 @@ const Product = sequelize.define('Product', {
     },
     brand_id: { // Add brandId as a foreign key
         type: DataTypes.INTEGER,
+        allowNull: true,
         references: {
             model: Brand,
             key: 'id'
-        }
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
     },
     discount: {
         type: DataTypes.FLOAT,

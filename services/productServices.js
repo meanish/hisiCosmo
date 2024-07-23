@@ -5,12 +5,19 @@ const mediaRepository = require("../repositories/mediaRepository");
 const { Product, Media, Category } = require("../models/association");
 const mediaTask = require("../helper/mediaTask");
 const productRepository = require("../repositories/productRepository");
+const MultimediaTask = require("../helper/nultiMediaUpload");
 
 
 const createNew = async (req) => {
     const transaction = await sequelize.transaction();
     const proData = req.body
-    const { featured_image, product_gallery } = req.files;
+    const featuredImage = req.files['featured_image'] ? req.files['featured_image'][0] : null;
+    const productGallery = req.files['product_gallery'] || [];
+    let featured_image
+    const fields = req.body
+    const { categoryIds } = fields
+    const mediaType = "product"
+
 
     try {
         if (proData.name) {
@@ -25,45 +32,31 @@ const createNew = async (req) => {
         }
 
         const product = await ProductRepository.create(proData, { transaction });
-        console.log("What you return in product", product)
-        let featured_image_path = ""
 
-        if (featured_image) {
-            const mediaData = {
-                mediaableId: product.id,
-                mediaableType: 'product',
-                filePath: featured_image[0].path,
-                fileType: featured_image[0].mimetype
-            };
 
-            const featured_image_file = await mediaRepository.create(mediaData, { transaction });
-            featured_image_path = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.filePath} `;
+        if (featuredImage) {
+            featured_image = await mediaTask(product.id, featuredImage, mediaType, fields, { transaction })
         }
 
-        if (product_gallery) {
-            const galleryEntries = product_gallery.map(file => ({
-                mediaableId: id,
-                mediaableType: 'product',
-                filePath: file.path,
-                fileType: file.mimetype
-            }));
 
-            const gallary_paths = await mediaRepository.bulkCreate(galleryEntries, { transaction });
-            let paths = gallary_paths.map(currPath => {
-                return `${process.env.NEXT_PUBLIC_HISI_SERVER}/${currPath.filePath}`;
-            });
-
-
-            console.log("Paths for all the product gallery images", paths)
+        if (productGallery.length > 0) {
+            updatedGallery = await MultimediaTask(product.id, productGallery, { mediaType: "productGallery" }, fields, { transaction })
         }
 
+        // adding the category in the productCategories Field
+        if (categoryIds && categoryIds.length > 0) {
+
+            isCatSet = await addCategoriesToProduct({ productId: product?.id, categoryIds });
+            if (!isCatSet.success) {
+                return res.status(500).json({ success: false, message: isConnected.message });
+            }
+        }
 
         await transaction.commit();
-        return { success: true, data: { ...product.dataValues, featured_image: `${featured_image_path}` } };
+        return { success: true, data: { ...product.dataValues, featured_image: featured_image, product_gallery: updatedGallery } };
 
     } catch (error) {
         await transaction.rollback();
-        console.log("What you return in product", error)
         return { success: false, message: error };
     }
 
@@ -80,7 +73,6 @@ const addCategoriesToProduct = async ({ productId, categoryIds }) => {
 
     } catch (error) {
         await transaction.rollback();
-        console.log('What iss wrong', error)
         return { success: false, message: error.message };
     }
 }
@@ -132,25 +124,33 @@ const getallProduct = async () => {
     } catch (error) {
         return { success: false, message: "Fetch category failed" };
     }
-
-
 }
 
 
-const editSinglePro = async ({ fields, id, file }) => {
+const editSinglePro = async ({ fields, id, featuredImage, productGallery }) => {
     const transaction = await sequelize.transaction();
     const mediaType = "product"
     let { categoryIds } = fields
-    console.log("hypo", typeof categoryIds)
     let categories = [];
+    let featured_image
+    let product_gallery = []
+
 
     try {
 
+        if (featuredImage) {
+            featured_image = await mediaTask(id, featuredImage, mediaType, fields, { transaction })
+            console.log("Image", featured_image)
+        }
 
-        let featured_image = await mediaTask(id, file, mediaType, fields, { transaction })
-        console.log("Image", featured_image)
+
+        if (productGallery) {
+            productGallery = await MultimediaTask(id, productGallery, { mediaType: "productGallery" }, fields, { transaction })
+            console.log("Images of gallary", productGallery)
+        }
 
         const updatedProduct = await productRepository.update(id, fields, { transaction });
+
         categoryIds = JSON.parse(categoryIds).map(Number);
 
 
@@ -158,16 +158,14 @@ const editSinglePro = async ({ fields, id, file }) => {
         for (const categoryId of categoryIds) {
             console.log("Delta", categoryId)
             const category = await Category.findByPk(categoryId, { transaction });
-
             if (!category) {
                 throw new Error(`Category with ID ${categoryId} not found`);
             }
-
             categories.push(category);
         }
         await updatedProduct.setCategories(categories, { transaction });
         await transaction.commit();
-        return { success: true, data: { ...updatedProduct.dataValues, featured_image: featured_image } };
+        return { success: true, data: { ...updatedProduct.dataValues, featured_image: featured_image, product_gallery: productGallery } };
 
     } catch (error) {
         await transaction.rollback();
@@ -189,11 +187,6 @@ const getSingleProduct = async (id) => {
                         as: 'categories',
                         through: { attributes: [] },
                     }
-                    //     ,
-                    //     {
-                    //         model: Media,
-                    //         as: 'productMedia',
-                    //     },
                 ],
             });
 
@@ -214,9 +207,23 @@ const getSingleProduct = async (id) => {
             }
 
 
+            let gallery_image_path = []
+
+            const product_gallery_files = await mediaRepository.findAll({
+                mediaableId: id,
+                mediaableType: 'productGallery',
+            })
+
+            if (product_gallery_files && product_gallery_files.length > 0) {
+                gallery_image_path = product_gallery_files.map(file => `${process.env.NEXT_PUBLIC_HISI_SERVER}/${file.filePath}`);
+
+            }
+            console.log("What are the gallaery images", product_gallery_files)
+
             return {
                 ...product.get({ plain: true }),
                 featured_image: featured_image,
+                product_gallery: gallery_image_path
             };
         };
 

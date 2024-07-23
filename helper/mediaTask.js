@@ -3,8 +3,16 @@ const mediaRepository = require("../repositories/mediaRepository");
 
 const mediaTask = async (id, file, mediaType, fields, options) => {
 
+
+    console.log("I media up;oad id is", id)
     let featured_image_path
     const { featured_image } = fields
+    let featured_image_file
+
+
+
+
+    console.log("Media upload for featured image", featured_image, "file", file, "fields", fields, "id", id, "mediaType", mediaType)
 
 
     if (file) {
@@ -17,6 +25,10 @@ const mediaTask = async (id, file, mediaType, fields, options) => {
         };
         // Find the existing featured_image
         const existingMedia = await mediaRepository.find(mediaData);
+
+
+        console.log("Is existing in dB already", existingMedia)
+
 
         if (existingMedia) {
             // Delete stored image first

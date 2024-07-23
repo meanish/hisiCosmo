@@ -2,23 +2,15 @@ const productService = require("../services/productServices")
 
 
 const createnewProduct = async (req, res) => {
-    const { categoryIds } = req.body
     try {
         const result = await productService.createNew(req);
-        if (result.success) {
-            // adding the category in the productCategories Field
-            if (categoryIds && categoryIds.length > 0) {
 
-                isConnected = await productService.addCategoriesToProduct({ productId: result.data?.id, categoryIds });
-                console.group("Is Con", isConnected)
-                if (!isConnected.success) {
-                    return res.status(500).json({ success: false, message: isConnected.message });
-                }
-            }
-            res.status(200).json({ data: result.data, sucess: true });
+        console.log("result final", result)
+        if (result?.success) {
+            res.status(200).json({ data: result?.data, sucess: true });
         }
         else {
-            return res.status(400).json({ success: false, message: result.message });
+            return res.status(400).json({ success: false, message: result?.message });
         }
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal server error' });
@@ -81,10 +73,10 @@ const getInputCat = async (req, res) => {
 const editSingleProduct = async (req, res) => {
     const { id } = req.params;
     const fields = req.body
-    const file = req.file
-
+    const featuredImage = req.files['featured_image'] ? req.files['featured_image'][0] : null;
+    const productGallery = req.files['product_gallery'] || [];
     try {
-        const result = await productService.editSinglePro({ fields, id, file })
+        const result = await productService.editSinglePro({ fields, id, featuredImage, productGallery })
 
         if (result?.success) {
             res.status(200).json({ data: result.data, success: true });

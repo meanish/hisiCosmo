@@ -28,7 +28,13 @@ const Media = sequelize.define('Media', {
     fileType: {
         type: DataTypes.STRING,
         allowNull: false
+    },
+    position: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: null,
     }
+
 },
     {
         tableName: 'media',

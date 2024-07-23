@@ -46,6 +46,8 @@ app.use("/upload_image", ImageUploadRouter)
 app.use("/brand", BrandRouter)
 
 app.get("/status", StatusController.getAllStatus)
+
+
 router.get("/", (req, res) => {
     res.send("Home Page Here")
 });
@@ -71,6 +73,8 @@ const startServer = async () => {
         app.listen(PORT, "127.0.0.1", () => {
             console.log('Server listening on port ' + PORT);
         });
+
+        
     } catch (error) {
         console.error('Unable to synchronize the database:', error);
     }

@@ -76,6 +76,8 @@ const editSingleCat = async (req, res) => {
 
         const fields = req.body
         const file = req.file
+        console.log("File", file)
+
         const result = await categoryService.editSingleCat({ fields, id, file })
 
         if (result.success) {
@@ -84,7 +86,7 @@ const editSingleCat = async (req, res) => {
             res.status(500).json({ error: result.message, success: false });
         }
     } catch (error) {
-        res.status(500).json({ error: result.error, success: false });
+        res.status(500).json({ error: error.message, success: false });
     }
 }
 

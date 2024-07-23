@@ -1,13 +1,14 @@
+const Brand = require("../models/brandModel");
 const Category = require("../models/categoryModel");
 const Product = require("../models/productsModel");
 
 
 module.exports = {
-    create: async (proData, options) => {
+    create: async (proData) => {
         console.log("if cat before store", proData)
         try {
             // Create a new user in the database
-            return await Product.create(proData, options)
+            return await Product.create(proData)
 
         } catch (error) {
             console.error("Error in ProductRepository.create:", error.message);
@@ -89,18 +90,33 @@ module.exports = {
     },
 
     update: async (id, fields, options) => {
+
+        console.log("fields in", fields, "id", id)
         try {
             const product = await Product.findByPk(id);
+
+
+            console.log("Found the product", product)
+
 
             if (!product) {
                 throw new Error(`Product with ID ${id} not found`);
             }
 
+            // if (fields.brand_id !== undefined) {
+            //     if (fields.brand_id !== null) {
+            //         const brand = await Brand.findByPk(fields.brand_id);
+            //         if (!brand) {
+            //             throw new Error(`Brand with ID ${fields.brand_id} not found`);
+            //         }
+            //     }
+            // }
+
             await product.update(fields, options)
             return product;
 
         } catch (error) {
-            console.error('Error in ProductRepository.update:', error.message);
+            console.log('Error in ProductRepository.update:', error.message);
             throw new Error(error.message);
         }
     },

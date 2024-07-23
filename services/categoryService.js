@@ -111,6 +111,7 @@ const editSingleCat = async ({ fields, id, file }) => {
     const { parent_category_id, name, description, featured_image } = fields;
     let mediaType = "category"
 
+
     try {
 
         let featured_image = await mediaTask(id, file, mediaType, fields, { transaction })

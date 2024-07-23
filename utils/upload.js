@@ -22,4 +22,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+/* .array('product_gallery', 3) */
+
+
 module.exports = upload;
