@@ -6,14 +6,15 @@ const createnewProduct = async (req, res) => {
         const result = await productService.createNew(req);
 
         console.log("result final", result)
+
         if (result?.success) {
-            res.status(200).json({ data: result?.data, sucess: true });
+            res.status(200).json({ data: result?.data, success: true });
         }
         else {
-            return res.status(400).json({ success: false, message: result?.message });
+            res.status(400).json({ success: false, message: result?.message });
         }
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Internal server error' });
+        res.status(500).json({ success: false, message: error.message });
     }
 }
 
@@ -117,22 +118,22 @@ const getSingleProduct = async (req, res) => {
 }
 
 
-const deleteSingleCategory = async (req, res) => {
+const deleteProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        const isAvailable = await categoryService.getSingleCat(id);
+        const isAvailable = await productService.getSingleProduct(id);
         if (!isAvailable.success) {
             // If the service returns an error, send a 400 response with the message
-            res.status(400).json({ success: false, message: "Id not found" });
+            res.status(400).json({ success: false, message: "Product not found" });
         } else {
 
-            const deleteCat = await categoryService.deleteSingleCat(id)
-            if (!deleteCat.success) {
+            const deleteProduct = await productService.deleteSingleProduct(id)
+            if (!deleteProduct.success) {
                 // If the service returns an error, send a 400 response with the message
-                res.status(400).json({ success: false, error: deleteCat.message });
+                res.status(400).json({ success: false, error: deleteProduct.message });
             } else {
                 // If the service returns a success, send a 200 response with the data
-                res.status(200).json({ message: deleteCat.message, success: true });
+                res.status(200).json({ message: deleteProduct.message, success: true });
             }
         }
     }
@@ -150,5 +151,6 @@ module.exports = {
     createnewProduct,
     getAllProduct,
     getSingleProduct,
-    editSingleProduct
+    editSingleProduct,
+    deleteProduct
 };

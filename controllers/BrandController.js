@@ -115,7 +115,7 @@ const deleteSingleBrand = async (req, res) => {
         const isAvailable = await brandService.getSingleBrand(id);
         if (!isAvailable.success) {
             // If the service returns an error, send a 400 response with the message
-            res.status(400).json({ success: false, message: "Id not found" });
+            res.status(400).json({ success: false, message: "Brand not found" });
         } else {
 
             const deleteBrand = await brandService.deleteSingleBrand(id)

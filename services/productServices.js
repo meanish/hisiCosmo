@@ -6,6 +6,7 @@ const { Product, Media, Category } = require("../models/association");
 const mediaTask = require("../helper/mediaTask");
 const productRepository = require("../repositories/productRepository");
 const MultimediaTask = require("../helper/nultiMediaUpload");
+const categoryRepository = require("../repositories/categoryRepository");
 
 
 const createNew = async (req) => {
@@ -13,8 +14,9 @@ const createNew = async (req) => {
     const proData = req.body
     const featuredImage = req.files['featured_image'] ? req.files['featured_image'][0] : null;
     const productGallery = req.files['product_gallery'] || [];
-    let featured_image
+    let featured_image = null
     const fields = req.body
+    let updatedGallery = []
     const { categoryIds } = fields
     const mediaType = "product"
 
@@ -47,13 +49,17 @@ const createNew = async (req) => {
         if (categoryIds && categoryIds.length > 0) {
 
             isCatSet = await addCategoriesToProduct({ productId: product?.id, categoryIds });
+
+            console.log("Catgeory Also added", isCatSet)
             if (!isCatSet.success) {
                 return res.status(500).json({ success: false, message: isConnected.message });
             }
         }
 
         await transaction.commit();
-        return { success: true, data: { ...product.dataValues, featured_image: featured_image, product_gallery: updatedGallery } };
+        return {
+            success: true, data: { ...product.dataValues, featured_image: featured_image }
+        };
 
     } catch (error) {
         await transaction.rollback();
@@ -164,6 +170,7 @@ const editSinglePro = async ({ fields, id, featuredImage, productGallery }) => {
             categories.push(category);
         }
         await updatedProduct.setCategories(categories, { transaction });
+
         await transaction.commit();
         return { success: true, data: { ...updatedProduct.dataValues, featured_image: featured_image, product_gallery: productGallery } };
 
@@ -237,29 +244,47 @@ const getSingleProduct = async (id) => {
 }
 
 // catServices
-const deleteSingleCat = async (id) => {
+const deleteSingleProduct = async (id) => {
     const transaction = await sequelize.transaction();
 
     const mediaData = {
         mediaableId: id,
-        mediaableType: 'category',
+        mediaableType: 'product',
+    }
+
+
+    const gallaryData = {
+        mediaableId: id,
+        mediaableType: 'productGallery',
     }
 
     try {
         const relatedMedia = await mediaRepository.find(mediaData);
-
+        const gallaryMedia = await mediaRepository.findAll(gallaryData)
+        const productData = await getSingleProduct(id)
+        const { categoryIds } = await productData.data
         if (relatedMedia) {
+            console.log("Found and possibly delete the featured_image of the product")
             // Delete the related media files
             await mediaRepository.delete(mediaData, { transaction });
         }
-        // Delete the brand, associated Media will be deleted due to CASCADE delete
-        const result = await CategoryRepository.delete(id, transaction)
+
+        if (gallaryMedia) {
+            console.log("Found and possibly delete all the imagesof the gallery of the product")
+            await mediaRepository.delete(gallaryData, { transaction })
+        }
+
+        if (categoryIds) {
+            console.log("Found and possibly delete all the categories connected with the product")
+            await ProductRepository.removeCategories(id, categoryIds, { transaction });
+        }
+        const result = await productRepository.delete(id)
         if (result) {
             await transaction.commit();
-            return { success: true, message: "Category successfully deleted" };
+            return { success: true, message: "Product has been deleted successfully" };
         } else {
             await transaction.rollback();
-            return { success: false, message: "Category not found or could not be deleted" };
+            return { success: false, message: "Something wenrt wrong while product gets deleted" };
         }
     } catch (error) {
         await transaction.rollback();
@@ -275,6 +300,7 @@ module.exports = {
     addCategoriesToProduct,
     getallProduct,
     getSingleProduct,
-    editSinglePro
+    editSinglePro,
+    deleteSingleProduct
 
 };

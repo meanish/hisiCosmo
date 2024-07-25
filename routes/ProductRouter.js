@@ -18,7 +18,7 @@ router.put("/edit/:id", upload.fields([
     { name: 'product_gallery', maxCount: 10 }
 ]), ProductController.editSingleProduct)
 
-
+router.delete("/delete/:id", ProductController.deleteProduct)
 
 // router.post('/logout', authController.logout);
 // router.post('/register', UserController.registerUser)

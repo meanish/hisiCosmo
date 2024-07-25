@@ -55,6 +55,41 @@ module.exports = {
         }
     },
 
+
+    removeCategories: async (productId, categoryIds, options) => {
+        console.log("remove from cat", productId, categoryIds, typeof categoryIds)
+        try {
+            const product = await Product.findByPk(productId);
+
+            if (!product) {
+                throw new Error(`Product with ID ${productId} not found`);
+            }
+
+            const categories = [];
+            categoryIds = JSON.parse(categoryIds).map(Number);
+            // Iterate over each categoryId and fetch the corresponding category
+            for (const categoryId of categoryIds) {
+                console.log(categoryId)
+                const category = await Category.findByPk(categoryId, { transaction: options.transaction });
+
+                if (!category) {
+                    throw new Error(`Category with ID ${categoryId} not found`);
+                }
+
+                categories.push(category);
+            }
+
+            console.log('Categories', categories)
+            if (categories.length !== categoryIds.length) {
+                throw new Error(`One or more categories with IDs ${categoryIds} not found`);
+            }
+            return await product.removeCategory(categories, { transaction: options.transaction });
+        }
+        catch (error) {
+            // Handle any errors that occur during user creation
+            throw new Error(error.message);
+        }
+    },
     // setCategories: async (productId, categoryId) => {
     //     console.log("add to cat", productId, categoryId)
     //     try {
@@ -125,7 +160,7 @@ module.exports = {
     delete: async (id, options) => {
 
         try {
-            const result = await Category.destroy({ where: { id }, ...options });
+            const result = await Product.destroy({ where: { id }, ...options });
             return result > 0;
         }
         catch (error) {

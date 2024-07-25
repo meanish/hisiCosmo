@@ -82,7 +82,7 @@ module.exports = {
 
             }
 
-            if (purpose?.purpose != "edit") {
+            if (purpose.purpose != "edit") {
                 await Media.destroy({
                     where: {
                         mediaableId: mediaData.mediaableId,
