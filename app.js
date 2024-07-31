@@ -14,6 +14,7 @@ const ProductRouter = require("./routes/ProductRouter")
 const ImageUploadRouter = require("./routes/imageUploadRoutes")
 const BrandRouter = require("./routes/BrandRouter")
 const StatusController = require("./controllers/StatusController")
+const DiscountController = require("./controllers/DiscountController")
 const categoriesRouter = require("./routes/categoriesRoutes")
 
 const authRoutes = require("./routes/authRoutes");
@@ -46,7 +47,7 @@ app.use("/upload_image", ImageUploadRouter)
 app.use("/brand", BrandRouter)
 
 app.get("/status", StatusController.getAllStatus)
-
+app.get("/discountstatus", DiscountController.getDiscountStatus)
 
 router.get("/", (req, res) => {
     res.send("Home Page Here")
@@ -74,7 +75,7 @@ const startServer = async () => {
             console.log('Server listening on port ' + PORT);
         });
 
-        
+
     } catch (error) {
         console.error('Unable to synchronize the database:', error);
     }

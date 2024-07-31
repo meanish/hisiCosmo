@@ -49,22 +49,17 @@ const Product = sequelize.define('Product', {
         references: {
             model: Brand,
             key: 'id'
+            
         },
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL'
     },
     discount: {
-        type: DataTypes.FLOAT,
-        allowNull: true,
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
     },
-    discount_start: {
-        type: DataTypes.DATE,
-        allowNull: true,
-    },
-    discount_end: {
-        type: DataTypes.DATE,
-        allowNull: true,
-    },
+
 }, {
     tableName: 'products',
     timestamps: true,

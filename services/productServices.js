@@ -7,21 +7,27 @@ const mediaTask = require("../helper/mediaTask");
 const productRepository = require("../repositories/productRepository");
 const MultimediaTask = require("../helper/nultiMediaUpload");
 const categoryRepository = require("../repositories/categoryRepository");
+const { addDiscount } = require("./discountService");
 
 
-const createNew = async (req) => {
+const createNew = async (req, res) => {
     const transaction = await sequelize.transaction();
     const proData = req.body
     const featuredImage = req.files['featured_image'] ? req.files['featured_image'][0] : null;
     const productGallery = req.files['product_gallery'] || [];
-    let featured_image = null
     const fields = req.body
-    let updatedGallery = []
-    const { categoryIds } = fields
+    const categoryIds = fields.categoryIds
+    const discount = fields.discount === '1'; // Convert to boolean
+    const discount_price = fields.discount_price ? parseFloat(fields.discount_price) : null;
+    let start_date = fields.start_date;
     const mediaType = "product"
+    let featured_image = null
+    let discount_data = null
+
 
 
     try {
+
         if (proData.name) {
             proData.slug = slugify(proData.name, { lower: true, strict: true });
         }
@@ -50,15 +56,21 @@ const createNew = async (req) => {
 
             isCatSet = await addCategoriesToProduct({ productId: product?.id, categoryIds });
 
-            console.log("Catgeory Also added", isCatSet)
             if (!isCatSet.success) {
-                return res.status(500).json({ success: false, message: isConnected.message });
+                return res.status(500).json({ success: false, message: isCatSet.message });
             }
+        }
+
+        // for discount
+        const setDiscount = await addDiscount(product, fields)
+        console.log("XDiscount", setDiscount?.data)
+        if (setDiscount.success) {
+            discount_data = setDiscount?.data
         }
 
         await transaction.commit();
         return {
-            success: true, data: { ...product.dataValues, featured_image: featured_image }
+            success: true, data: { ...product.dataValues, featured_image: featured_image, discount_data: discount_data.dataValues }
         };
 
     } catch (error) {
@@ -90,7 +102,6 @@ const getallProduct = async () => {
 
     try {
         const products = await ProductRepository.all();
-        console.log("P", products)
 
         const buildProductTree = async (products) => {
             const getProductWithImage = async (product) => {
