@@ -3,3 +3,7 @@
 .env
 
 /uploads
+
+/mvc.zip
+
+*.zip
