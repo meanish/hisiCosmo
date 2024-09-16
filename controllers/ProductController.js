@@ -1,3 +1,4 @@
+const { default: removeDuplicates } = require("../helper/removeDuplicates");
 const productService = require("../services/productServices")
 
 
@@ -34,35 +35,28 @@ const getAllProduct = async (req, res) => {
 }
 
 
-const getInputCat = async (req, res) => {
+const getProductSearch = async (req, res) => {
     try {
         const searchText = req.query.text;
         if (!searchText) {
             return res.status(400).json({ sucesss: false, message: "The 'text' query parameter is required" });
         }
 
-        const result = await categoryService.getallCat();
+        const result = await productService.getallProduct();
+
 
         if (result.success) {
-            const findMatches = (categories, searchText) => {
+            const findMatches = (products, searchText) => {
                 let matches = [];
-                categories.forEach(category => {
-                    if (category.name.toLowerCase().includes(searchText.toLowerCase())) {
-                        matches.push({ ...category });
-                    }
-                    if (category?.subcategories?.length > 0) {
-                        category.subcategories.map((childCat) => {
-                            if (childCat.name.toLowerCase().includes(searchText.toLowerCase())) {
-                                matches.push({ ...childCat });
-                            }
-                        })
-
+                products.forEach(product => {
+                    if (product.name.toLowerCase().includes(searchText.toLowerCase())) {
+                        matches.push({ ...product });
                     }
                 });
                 return matches;
             };
             const matchingNames = findMatches(result.data, searchText);
-            res.status(200).json({ data: matchingNames, sucess: true });
+            res.status(200).json({ data: matchingNames, success: true });
         }
     }
     catch (error) {
@@ -92,21 +86,31 @@ const editSingleProduct = async (req, res) => {
 
 
 
-const getSingleProduct = async (req, res) => {
+const getSingle = async (req, res) => {
 
     try {
         const { id } = req.params;
 
         const result = await productService.getSingleProduct(id);
         console.log("Result ", result)
+        const product = result.data
+
+
+        // working on suggestions 
+        const getSuggestions = await getRandomSuggestions(product)
+
+        console.log("Get random suggestion for any products", getSuggestions)
+
+
 
         if (!result.success) {
             // If the service returns an error, send a 400 response with the message
             res.status(400).json({ success: false, error: result.message });
         } else {
             // If the service returns a success, send a 200 response with the data
-            res.status(200).json({ data: result.data, success: true });
+            res.status(200).json({ data: result.data, success: true, suggestions: getSuggestions });
         }
+
 
 
     }
@@ -116,6 +120,40 @@ const getSingleProduct = async (req, res) => {
         res.status(500).json({ error: error, success: false });
     }
 }
+
+
+const getRandomSuggestions = async (product) => {
+    console.log("Product detsials", product)
+    const { categories, brand_id, name, id } = product;
+
+
+    function removeDuplicates(array, key) {
+        return [...new Map(array.map(item => [item[key], item])).values()];
+    };
+
+
+    try {
+        const categorySuggestions = await productService.getProductsByCategory(categories[0]?.id, { limit: 4, random: true });
+        const brandSuggestions = await productService.getProductsByBrand(brand_id, { limit: 4, random: true });
+        const randomSuggestions = await productService.getRandomProducts(name, { limit: 4 });
+        const allSuggestions = [...randomSuggestions, ...categorySuggestions, ...brandSuggestions];
+
+
+        console.log("Rando Suggestions", allSuggestions)
+
+
+        let uniqueSuggestions = removeDuplicates(allSuggestions, 'id');
+        uniqueSuggestions = uniqueSuggestions.filter(suggestion => suggestion.id !== id);
+
+        return uniqueSuggestions;
+
+    } catch (error) {
+        console.error("Error fetching suggestions:", error);
+        return [];
+    }
+};
+
+
 
 
 const deleteProduct = async (req, res) => {
@@ -150,7 +188,8 @@ const deleteProduct = async (req, res) => {
 module.exports = {
     createnewProduct,
     getAllProduct,
-    getSingleProduct,
+    getSingle,
+    getProductSearch,
     editSingleProduct,
     deleteProduct
 };

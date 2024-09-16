@@ -4,11 +4,11 @@ const slugify = require('slugify');
 
 module.exports = {
 
-    create: async (data) => {
+    create: async (data, options) => {
         console.log("Dis dfd", data)
         try {
             // Create a new user in the database
-            const DiscountData = await Discount.create(data);
+            const DiscountData = await Discount.create(data, options);
             console.log("Stored Discount", DiscountData)
             return DiscountData;
 
@@ -22,8 +22,8 @@ module.exports = {
 
     all: async () => {
         try {
-            const AllBrands = await Brand.findAll();
-            return AllBrands
+            const AllDiscount = await Discount.findAll();
+            return AllDiscount
 
         } catch (error) {
             // Handle any errors that occur during user creation
@@ -31,18 +31,13 @@ module.exports = {
         }
     },
 
-    update: async ({ id, name, description }) => {
-        console.log("What the id", id)
+    update: async (id, fields,options) => {
         try {
 
-            const brand = await Brand.findByPk(id);
-            brand.name = name;
-            brand.slug = slugify(name, { lower: true, strict: true });
-            brand.description = description;
-            await brand.save();
-
-            // Return the updated category
-            return brand;
+            const discount = await Discount.findByPk(id);
+            console.log("Found the disocunt table daata", discount, "Wht update", fields)
+            await discount.update(fields,options);
+            return discount
         }
 
 
@@ -55,7 +50,7 @@ module.exports = {
     delete: async (id, options) => {
 
         try {
-            const result = await Brand.destroy({ where: { id }, ...options });
+            const result = await Discount.destroy({ where: { id }, ...options });
             return result > 0;
         }
         catch (error) {
@@ -65,3 +60,20 @@ module.exports = {
 
 
 };
+
+
+/* Dis dfd {
+  productId: 27,
+  discount: '1',
+  discount_price: '100',
+  start_date: 2024-09-16T18:15:00.000Z,
+  end_date: 2024-09-20T18:15:00.000Z
+} */
+
+/* Dis dfd {
+productId: 93,
+discount: '1',
+discount_price: '12',
+start_date: 2024-09-13T18:15:00.000Z,
+end_date: 2024-09-20T18:15:00.000Z
+} */

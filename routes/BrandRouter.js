@@ -13,6 +13,9 @@ router.put('/edit/:id', upload.single('featured_image'), BrandController.editSin
 router.delete("/delete/:id", BrandController.deleteSingleBrand)
 
 router.get("/", BrandController.getAllBrand);
+
+router.get("/search", BrandController.getbrandSearch);
+
 // router.post('/logout', authController.logout);
 
 // router.get("/search", CategoryController.getInputCat)

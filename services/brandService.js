@@ -7,6 +7,7 @@ const brandRepository = require("../repositories/brandRepository");
 const Brand = require("../models/brandModel");
 const mediaRepository = require("../repositories/mediaRepository");
 const mediaTask = require("../helper/mediaTask");
+const imageConvert = require("../helper/imageSlashremoval");
 
 
 
@@ -40,7 +41,11 @@ const createNew = async (req) => {
             };
 
             const featured_image_file = await MediaRepository.create(mediaData, { transaction });
-            featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.filePath} `;
+
+            let imgPath = featured_image_file ? imageConvert(featured_image_file.filePath) : null
+            featured_image = imgPath ? `${process.env.NEXT_PUBLIC_HISI_SERVER}/${imgPath}` : "";
+
+
         }
 
         await transaction.commit();
@@ -74,12 +79,11 @@ const getallBrand = async () => {
 
                 const featured_image_file = await MediaRepository.find(mediaData);
                 console.log("Image", featured_image_file)
-                if (featured_image_file) {
-                    featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.dataValues.filePath}`;
-                }
-                else {
-                    featured_image = ""
-                }
+
+                let imgPath = featured_image_file ? imageConvert(featured_image_file.dataValues.filePath) : null
+                featured_image = imgPath ? `${process.env.NEXT_PUBLIC_HISI_SERVER}/${imgPath}` : "";
+
+
                 return {
                     ...brand.dataValues,
                     featured_image: featured_image,
@@ -94,7 +98,7 @@ const getallBrand = async () => {
 
 
     } catch (error) {
-        return { success: false, message: "Fetch brand failed" };
+        return { success: false, message: error.message };
     }
 
 
@@ -148,7 +152,9 @@ const getSingleBrand = async (id) => {
             const featured_image_file = await MediaRepository.find(mediaData);
 
             if (featured_image_file) {
-                featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.dataValues.filePath}`;
+
+                let imgPath = featured_image_file ? imageConvert(featured_image_file.dataValues.filePath) : null
+                featured_image = imgPath ? `${process.env.NEXT_PUBLIC_HISI_SERVER}/${imgPath}` : "";
             }
             else {
                 featured_image = ""

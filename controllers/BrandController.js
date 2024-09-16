@@ -31,7 +31,7 @@ const getAllBrand = async (req, res) => {
 
 
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Internal server error' });
+        res.status(500).json({ success: false, message: error.message });
     }
 }
 
@@ -81,6 +81,35 @@ const editSingleBrand = async (req, res) => {
     }
 }
 
+const getbrandSearch = async (req, res) => {
+    try {
+        const searchText = req.query.text;
+        if (!searchText) {
+            return res.status(400).json({ sucesss: false, message: "The 'text' query parameter is required" });
+        }
+
+        const result = await brandService.getallBrand();
+
+
+        if (result.success) {
+            const findMatches = (brands, searchText) => {
+                let matches = [];
+                brands.forEach(brand => {
+                    if (brand.name.toLowerCase().includes(searchText.toLowerCase())) {
+                        matches.push({ ...brand });
+                    }
+
+                });
+                return matches;
+            };
+            const matchingNames = findMatches(result.data, searchText);
+            res.status(200).json({ data: matchingNames, success: true });
+        }
+    }
+    catch (error) {
+        res.status(500).json({ error: "An error occurred while processing your request" });
+    }
+}
 
 
 
@@ -139,5 +168,6 @@ module.exports = {
     getInputCat,
     editSingleBrand,
     getSingleBrand,
-    deleteSingleBrand
+    deleteSingleBrand,
+    getbrandSearch
 };

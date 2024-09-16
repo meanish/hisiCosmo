@@ -1,4 +1,5 @@
 const mediaRepository = require("../repositories/mediaRepository");
+const imageConvert = require("./imageSlashremoval");
 
 
 const MultimediaTask = async (id, files, media, fields, options) => {
@@ -23,7 +24,13 @@ const MultimediaTask = async (id, files, media, fields, options) => {
             };
 
             const gallery_file = await mediaRepository.create(mediaData, { options });
-            product_gallery_files.push(`${process.env.NEXT_PUBLIC_HISI_SERVER}/${gallery_file.filePath}`);
+
+            let imgPath = gallery_file ? imageConvert(gallery_file?.filePath) : null
+
+            {
+                imgPath && product_gallery_files.push(`${process.env.NEXT_PUBLIC_HISI_SERVER}/${imgPath}`);
+            }
+
 
         }
 
@@ -34,7 +41,11 @@ const MultimediaTask = async (id, files, media, fields, options) => {
         const existingMedia = await mediaRepository.findAll({ mediaableId: id, mediaableType: "productGallery" });
         if (existingMedia) {
             for (let index = 0; index < existingMedia.length; index++) {
-                product_gallery_files.push(`${process.env.NEXT_PUBLIC_HISI_SERVER}/${existingMedia[index].dataValues.filePath}`);
+                let imgPath = existingMedia[index]?.dataValues ? imageConvert(existingMedia[index].dataValues.filePath) : null
+
+                {
+                    imgPath && product_gallery_files.push(`${process.env.NEXT_PUBLIC_HISI_SERVER}/${imgPath}`);
+                }
 
             }
         }

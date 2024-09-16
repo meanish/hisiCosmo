@@ -4,6 +4,7 @@ const Product = require("../models/productsModel");
 
 
 module.exports = {
+
     create: async (proData) => {
         console.log("if cat before store", proData)
         try {

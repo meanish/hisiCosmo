@@ -1,4 +1,5 @@
 const mediaRepository = require("../repositories/mediaRepository");
+const imageConvert = require("./imageSlashremoval");
 
 
 const mediaTask = async (id, file, mediaType, fields, options) => {
@@ -47,7 +48,9 @@ const mediaTask = async (id, file, mediaType, fields, options) => {
 
         }
 
-        featured_image_path = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.filePath} `;
+        let imgPath = featured_image_file ? imageConvert(featured_image_file.filePath) : null
+        featured_image_path = imgPath ? `${process.env.NEXT_PUBLIC_HISI_SERVER}/${imgPath}` : "";
+
 
     } else if (featured_image === null) {
         console.log("NUll in image")
@@ -75,7 +78,9 @@ const mediaTask = async (id, file, mediaType, fields, options) => {
         });
         console.log("Did setr image now find one", existingMedia)
         if (existingMedia) {
-            featured_image_path = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${existingMedia.filePath}`;
+            let imgPath = featured_image_file ? imageConvert(existingMedia.filePath) : null
+            featured_image_path = imgPath ? `${process.env.NEXT_PUBLIC_HISI_SERVER}/${imgPath}` : "";
+
         }
         else {
             featured_image_path = "";

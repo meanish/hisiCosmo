@@ -5,11 +5,9 @@ async function registerUser(req, res) {
 
     try {
 
-
-
         const newUser = await userService.register(req.body);
 
-            res.status(201).json(newUser);
+        res.status(201).json({ data: newUser, success: true });
 
     }
 
@@ -20,7 +18,7 @@ async function registerUser(req, res) {
         } catch (parseError) {
             errorMessage = error.message;
         }
-        res.status(400).json({ errors: errorMessage });
+        res.status(400).json({ errors: errorMessage, success: false });
     }
 
 
@@ -30,14 +28,13 @@ async function registerUser(req, res) {
 async function loginUser(req, res) {
     try {
         const loginUser = await userService.login(req.body);
-        res.status(200).json({ data: loginUser, sucess: true });
+        res.status(200).json({ data: loginUser, success: true });
 
     } catch (error) {
         let errorMessage;
         console.log("Error", error)
         errorMessage = JSON.parse(error.message);
-
-        res.status(400).json({ errors: errorMessage });
+        res.status(400).json({ errors: errorMessage, success: false });
     }
 }
 

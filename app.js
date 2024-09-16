@@ -6,8 +6,6 @@ require('dotenv').config() //required to use env
 const PORT = process.env.PORT || 8000;
 
 const app = express();
-
-
 const LoginRouter = require("./routes/LoginRouter")
 const RegisterRouter = require("./routes/RegisterRouter")
 const ProductRouter = require("./routes/ProductRouter")
@@ -16,6 +14,10 @@ const BrandRouter = require("./routes/BrandRouter")
 const StatusController = require("./controllers/StatusController")
 const DiscountController = require("./controllers/DiscountController")
 const categoriesRouter = require("./routes/categoriesRoutes")
+const filterController = require("./controllers/FilterControllers")
+const CartRouter = require("./routes/CartRouter")
+const ShippingRouter = require("./routes/shippingRouter")
+
 
 const authRoutes = require("./routes/authRoutes");
 require("./database/conn")
@@ -46,6 +48,12 @@ app.use("/upload_image", ImageUploadRouter)
 
 app.use("/brand", BrandRouter)
 
+
+app.use("/cart", CartRouter)
+
+
+app.use("/shipping", ShippingRouter)
+
 app.get("/status", StatusController.getAllStatus)
 app.get("/discountstatus", DiscountController.getDiscountStatus)
 
@@ -53,6 +61,8 @@ router.get("/", (req, res) => {
     res.send("Home Page Here")
 });
 
+
+app.get("/filter", filterController.filterProduct)
 
 
 

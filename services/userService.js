@@ -16,7 +16,7 @@ async function register(userData) {
     }
 
 
-    // Hash the password
+    // Hash the passwordplogi
     const hashedPassword = await hashPassword(userData.password);
 
     // Create new user
@@ -37,7 +37,7 @@ async function login(userData) {
     console.log("what is in the autherization", user)
 
     if (!user) {
-        throw new Error(JSON.stringify({ email: ["No User found"] }));
+        throw new Error(JSON.stringify({ email: ["No user found"] }));
     }
 
     else {
@@ -51,14 +51,14 @@ async function login(userData) {
         }
 
 
-        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '15m' });
+        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
         // console.log("Expires at", jwt_decode(token))
 
 
         return ({
             id: user.id,
-            name: user.name,
+            name: user.username,
             email: user.email,
             accessToken: token,
             role: user.role

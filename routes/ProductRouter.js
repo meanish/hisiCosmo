@@ -10,8 +10,9 @@ router.post('/create', upload.fields([
 ]), ProductController.createnewProduct);
 
 router.get("/", ProductController.getAllProduct);
+router.get("/search", ProductController.getProductSearch)
 
-router.get("/:id", ProductController.getSingleProduct)
+router.get("/:id", ProductController.getSingle)
 
 router.put("/edit/:id", upload.fields([
     { name: 'featured_image', maxCount: 1 },
@@ -20,7 +21,5 @@ router.put("/edit/:id", upload.fields([
 
 router.delete("/delete/:id", ProductController.deleteProduct)
 
-// router.post('/logout', authController.logout);
-// router.post('/register', UserController.registerUser)
 
 module.exports = router

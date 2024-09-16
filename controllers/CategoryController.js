@@ -27,7 +27,7 @@ const getAllCat = async (req, res) => {
             res.status(200).json({ data: result.data, success: true });
         }
     } catch (error) {
-        res.status(500).json({ success: false, error: 'Internal server error' });
+        res.status(500).json({ success: false, error: error.message });
     }
 }
 
@@ -60,7 +60,7 @@ const getInputCat = async (req, res) => {
                 return matches;
             };
             const matchingNames = findMatches(result.data, searchText);
-            res.status(200).json({ data: matchingNames, sucess: true });
+            res.status(200).json({ data: matchingNames, success: true });
         }
     }
     catch (error) {

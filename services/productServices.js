@@ -7,7 +7,11 @@ const mediaTask = require("../helper/mediaTask");
 const productRepository = require("../repositories/productRepository");
 const MultimediaTask = require("../helper/nultiMediaUpload");
 const categoryRepository = require("../repositories/categoryRepository");
-const { addDiscount } = require("./discountService");
+const { addDiscount, updateDiscount, removeDiscount } = require("./discountService");
+const discountRepository = require("../repositories/discountRepository");
+const imageConvert = require("../helper/imageSlashremoval");
+const Discount = require("../models/discountModel");
+const { Sequelize } = require("sequelize");
 
 
 const createNew = async (req, res) => {
@@ -16,10 +20,16 @@ const createNew = async (req, res) => {
     const featuredImage = req.files['featured_image'] ? req.files['featured_image'][0] : null;
     const productGallery = req.files['product_gallery'] || [];
     const fields = req.body
+
+
+    console.log("Product Field after login in ......... ", fields)
+
     const categoryIds = fields.categoryIds
     const discount = fields.discount === '1'; // Convert to boolean
     const discount_price = fields.discount_price ? parseFloat(fields.discount_price) : null;
     let start_date = fields.start_date;
+
+    // const { discount, start_date, end_date, discount_price, categoryIds } = fields
     const mediaType = "product"
     let featured_image = null
     let discount_data = null
@@ -62,15 +72,21 @@ const createNew = async (req, res) => {
         }
 
         // for discount
-        const setDiscount = await addDiscount(product, fields)
-        console.log("XDiscount", setDiscount?.data)
-        if (setDiscount.success) {
-            discount_data = setDiscount?.data
+        if (discount) {
+            const setDiscount = await addDiscount(product, fields)
+            console.log("XDiscount", setDiscount?.data)
+            if (setDiscount.success) {
+                discount_data = setDiscount?.data
+                discount_data.discount = discount_data.discount === "1"
+            }
+            else {
+                discount_data = null
+            }
         }
 
         await transaction.commit();
         return {
-            success: true, data: { ...product.dataValues, featured_image: featured_image, discount_data: discount_data.dataValues }
+            success: true, data: { ...product.dataValues, featured_image: featured_image, discount_data: discount_data?.dataValues || null }
         };
 
     } catch (error) {
@@ -102,26 +118,34 @@ const getallProduct = async () => {
 
     try {
         const products = await ProductRepository.all();
+        // console.log("Products all ", products)
 
         const buildProductTree = async (products) => {
-            const getProductWithImage = async (product) => {
+            const getProductWithImageDiscount = async (product) => {
                 const mediaData = {
                     mediaableId: product.id,
                     mediaableType: 'product',
                 };
 
                 const featured_image_file = await mediaRepository.find(mediaData);
-                const featured_image = featured_image_file ? `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.filePath}` : "";
+
+
+
+                let imgPath = featured_image_file ? imageConvert(featured_image_file.filePath) : null
+
+                const featured_image = imgPath ? `${process.env.NEXT_PUBLIC_HISI_SERVER}/${imgPath}` : "";
+                let discount_data = null
 
                 return {
                     ...product.dataValues,
                     featured_image,
+                    // discount_data
                 };
             };
 
             // Map each product to its corresponding product with image
             const productsWithImagesPromises = products.map(async (product) => {
-                return await getProductWithImage(product);
+                return await getProductWithImageDiscount(product);
             });
 
             // Wait for all promises to resolve
@@ -151,7 +175,10 @@ const editSinglePro = async ({ fields, id, featuredImage, productGallery }) => {
     let categories = [];
     let featured_image
     let product_gallery = []
-
+    console.log("Fields", fields)
+    const discount = fields.discount === 'true' || fields.discount === "1"; // Convert to boolean
+    const discount_price = fields.discount_price ? parseFloat(fields.discount_price) : null;
+    let discount_data = null
 
     try {
 
@@ -182,8 +209,55 @@ const editSinglePro = async ({ fields, id, featuredImage, productGallery }) => {
         }
         await updatedProduct.setCategories(categories, { transaction });
 
+
+        // for discount
+        //   check if disounted or not      //
+
+        const product = await Product.findByPk(id);
+        console.log("What is the product to update", product)
+        const isDiscountedProduct = product.dataValues.discount
+
+
+        console.log("DiscountedProduct Data", isDiscountedProduct, discount)
+
+
+        if (isDiscountedProduct) {
+            const getDiscountField = await Discount.findOne({ where: { productId: id } })
+
+            console.log("Discounted in the update", getDiscountField, discount)
+            if (getDiscountField) {
+                const discountId = getDiscountField.dataValues.id
+                if (discount) {
+                    await updateDiscount(discountId, fields, { transaction })
+                }
+                else if (!discount) {
+                    // remove existing
+                    console.log("Existed not anymore")
+                    await removeDiscount(discountId)
+                }
+            }
+            // else {
+            //     discount_data = null
+            // }
+
+        }
+        else if (!isDiscountedProduct && discount) {
+            console.log("Not existed but added new")
+            const setDiscount = await addDiscount(product, fields, { transaction })
+            console.log("XDiscount", setDiscount?.data)
+            if (setDiscount.success) {
+                discount_data = setDiscount?.data
+            }
+            else {
+                discount_data = null
+            }
+
+        }
+
+
+
         await transaction.commit();
-        return { success: true, data: { ...updatedProduct.dataValues, featured_image: featured_image, product_gallery: productGallery } };
+        return { success: true, data: { ...updatedProduct.dataValues, featured_image: featured_image, product_gallery: productGallery, discount_data: discount_data } };
 
     } catch (error) {
         await transaction.rollback();
@@ -196,7 +270,9 @@ const editSinglePro = async ({ fields, id, featuredImage, productGallery }) => {
 
 const getSingleProduct = async (id) => {
     try {
-        const ProdWCatData = async (id) => {
+        const ProdWCatDiscData = async (id) => {
+            let discount_data;
+
             // Find the product by id and include related categories
             const product = await Product.findByPk(id, {
                 include: [
@@ -217,12 +293,10 @@ const getSingleProduct = async (id) => {
                 mediaableType: 'product',
             }
             const featured_image_file = await mediaRepository.find(mediaData)
-            if (featured_image_file) {
-                featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${featured_image_file.dataValues.filePath}`;
-            }
-            else {
-                featured_image = ""
-            }
+
+            let imgPath = featured_image_file ? imageConvert(featured_image_file.dataValues.filePath) : null
+
+            let featured_image = imgPath ? `${process.env.NEXT_PUBLIC_HISI_SERVER}/${imgPath}` : "";
 
 
             let gallery_image_path = []
@@ -233,24 +307,47 @@ const getSingleProduct = async (id) => {
             })
 
             if (product_gallery_files && product_gallery_files.length > 0) {
-                gallery_image_path = product_gallery_files.map(file => `${process.env.NEXT_PUBLIC_HISI_SERVER}/${file.filePath}`);
+                gallery_image_path = product_gallery_files.map(file => {
+                    let imgPath = file ? imageConvert(file.filePath) : null
+                    return imgPath ? `${process.env.NEXT_PUBLIC_HISI_SERVER}/${imgPath}` : null;
+                });
 
             }
             console.log("What are the gallaery images", product_gallery_files)
 
+
+            // dicount
+
+
+            const { discount, id: discountId } = product.dataValues
+
+
+            if (discount) {
+                console.log("Available ids", discountId)
+                const getAllDiscount = await discountRepository.all()
+
+
+                console.log("All", getAllDiscount)
+                const findSingleData = getAllDiscount.find((currData) => currData.dataValues.productId === discountId)
+                discount_data = { ...findSingleData.dataValues }
+                console.log("Values of a single discount ", findSingleData)
+
+            }
+
             return {
                 ...product.get({ plain: true }),
                 featured_image: featured_image,
-                product_gallery: gallery_image_path
+                product_gallery: gallery_image_path,
+                discount_data
             };
         };
 
         // Assuming `id` is defined somewhere in your code as the root category id
-        const productData = await ProdWCatData(id);
+        const productData = await ProdWCatDiscData(id);
         return { success: true, data: productData }
 
     } catch (error) {
-        return { success: false, message: error };
+        return { success: false, message: error.message };
     }
 }
 
@@ -304,6 +401,70 @@ const deleteSingleProduct = async (id) => {
 }
 
 
+const getProductsByCategory = async (categoryId, options) => {
+
+    console.log("CatId", categoryId)
+    try {
+        const products = await Product.findAll({
+            include: [
+                {
+                    model: Category,
+                    as: 'categories',
+                    through: 'ProductCategories',
+                    where: { id: categoryId },
+                    attributes: []
+                }
+            ],
+            limit: options.limit,
+            order: Sequelize.literal('RAND()')
+        });
+
+        return products;
+    } catch (error) {
+        console.error("Error fetching products by category:", error);
+        return [];
+    }
+};
+
+
+const getProductsByBrand = async (brandId, options) => {
+    try {
+        const products = await Product.findAll({
+            where: {
+                brand_id: brandId,
+            },
+            limit: options.limit,
+            order: Sequelize.literal('RAND()')
+        });
+
+        return products;
+    } catch (error) {
+        console.error("Error fetching products by brand:", error);
+        return [];
+    }
+};
+
+
+const getRandomProducts = async (productName, options) => {
+    try {
+        const namePattern = `%${productName.split(' ')[0]}%`; // Match first word in the name
+
+        const products = await Product.findAll({
+            where: {
+                name: {
+                    [Sequelize.Op.like]: namePattern
+                }
+            },
+            limit: options.limit,
+            order: Sequelize.literal('RAND()')
+        });
+
+        return products;
+    } catch (error) {
+        console.error("Error fetching random products with similar names:", error);
+        return [];
+    }
+};
 
 
 module.exports = {
@@ -312,6 +473,10 @@ module.exports = {
     getallProduct,
     getSingleProduct,
     editSinglePro,
-    deleteSingleProduct
+    deleteSingleProduct,
+    getProductsByCategory,
+    getProductsByBrand,
+    getRandomProducts
+
 
 };
