@@ -2,6 +2,8 @@ const { Product, Media, Category } = require("../models/association");
 
 const { Sequelize } = require('sequelize');
 const ProductCategories = require("../models/productCategories");
+const imageConvert = require("../helper/imageSlashremoval");
+const mediaRepository = require("../repositories/mediaRepository");
 
 
 const filterProduct = async (req, res) => {
@@ -78,7 +80,27 @@ const filterProduct = async (req, res) => {
         });
 
 
-        res.status(200).json({ success: "true", data: products });
+        // add featured images
+        const PwImages = await Promise.all(products?.map(async (currPro) => {
+            const mediaData = {
+                mediaableId: currPro.dataValues.id,
+                mediaableType: 'product',
+            }
+
+            console.log(mediaData)
+            const featured_image_file = await mediaRepository.find(mediaData)
+
+            let imgPath = featured_image_file ? imageConvert(featured_image_file.dataValues?.filePath) : null
+            let featured_image = imgPath ? `${process.env.NEXT_PUBLIC_HISI_SERVER}/${imgPath}` : "";
+
+
+            return { ...currPro.dataValues, featured_image: featured_image }
+        }))
+
+
+
+
+        res.status(200).json({ success: "true", data: PwImages });
     } catch (error) {
         res.status(500).json({ success: "false", error: error.message });
     }

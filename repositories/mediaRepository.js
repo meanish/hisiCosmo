@@ -24,7 +24,6 @@ module.exports = {
     find: async (mediaData) => {
         const { mediaableId, mediaableType } = mediaData
 
-        console.log("Media Dtaa for product seach", mediaData)
         try {
             return await Media.findOne({ where: { mediaableId: mediaableId, mediaableType: mediaableType } });
         } catch (error) {
@@ -36,7 +35,6 @@ module.exports = {
     findAll: async (mediaData) => {
         const { mediaableId, mediaableType } = mediaData;
 
-        console.log("Media Data for product search", mediaData);
         try {
             return await Media.findAll({ where: { mediaableId: mediaableId, mediaableType: mediaableType } });
         } catch (error) {

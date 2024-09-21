@@ -51,7 +51,7 @@ module.exports = {
             const getQuantity = cartItems.dataValues.quantity;
             cartData.quantity = +cartData.quantity + +getQuantity
             if (cartData.quantity > 10) {
-                throw new Error("Items cannot exceed limit 10");
+                throw new Error("Total items to be placed in the cart is exceeding limit 10. Please check your cart.");
             }
             else {
                 return await cartItems.update(cartData, { ...options });
@@ -68,23 +68,29 @@ module.exports = {
     },
 
     asyncupdate: async (data, cart, options) => {
-
-        const { cart_id, product_id } = cart
-
-        const cartData = { cart, ...data }
-
-        console.log("Cart Daata", cartData)
+        const { cart_id, product_id } = cart;
+        const cartData = { ...data, cart_id, product_id };  // Merge necessary data for update
         try {
-            const cartItems = await CartItem.findOne({ where: { product_id, cart_id } })
-            return await cartItems.update(cartData, { ...options });
-        }
+            // Find the cart item
+            const cartItems = await CartItem.findOne({ where: { product_id, cart_id }, ...options });
 
+            if (!cartItems) {
+                console.log(`CartItem not found for cart_id: ${cart_id} and product_id: ${product_id}`);
+                throw new Error('CartItem not found.');
+            }
 
-        catch (error) {
-            // Handle any errors that occur during user creation
-            throw new Error(error.message);
+            // Proceed with updating the cart item
+            const afterUpdate = await cartItems.update(cartData, { ...options });
+
+            console.log("After Update:", afterUpdate);
+
+            return afterUpdate;
+        } catch (error) {
+            console.error("Error during cart update:", error.message);
+            throw new Error(`Failed to update cart item: ${error.message}`);
         }
     },
+
 
     delete: async (data, cart, options) => {
         const { product_id, cart_id } = cart
@@ -100,17 +106,25 @@ module.exports = {
     },
 
     find: async (data, cart, options) => {
-        const { product_id } = data
-        const cart_id = cart.id
-        try {
-            return await CartItem.findOne({ where: { product_id, cart_id }, ...options });
+        const { product_id } = data;
+        const cart_id = cart.id;
 
+        try {
+            console.log(`Looking for CartItem with product_id: ${product_id} and cart_id: ${cart_id}`);
+            const cartItem = await CartItem.findOne({ where: { product_id, cart_id }, ...options });
+
+            if (!cartItem) {
+                console.log(`CartItem not found for cart_id: ${cart_id} and product_id: ${product_id}`);
+                return null;
+            }
+
+            return cartItem;
         } catch (error) {
-            console.log("Error", error.message)
-            // Handle any errors that occur during user creation
-            throw new Error(error.message);
+            console.error("Error during cart item retrieval:", error.message);
+            throw new Error(`Failed to retrieve cart item: ${error.message}`);
         }
     },
+
     findAll: async (id, options) => {
         try {
             const all = await CartItem.findAll({
@@ -132,6 +146,7 @@ module.exports = {
                 }],
                 ...options
             })
+
             return all
         }
         catch (error) {

@@ -2,14 +2,8 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 
 const auth = async (req, res, next) => {
-    // const parsedUrl = url.parse(req.url).pathname;
 
-    // console.log("backend", parsedUrl);
-
-    // if (parsedUrl === "/chat") {
-    //     return next();
-    // }
-
+    console.log(req.headers.authorization)
     try {
         if (
             req.headers.authorization &&

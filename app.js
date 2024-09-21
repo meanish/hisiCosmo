@@ -62,7 +62,7 @@ router.get("/", (req, res) => {
 });
 
 
-app.get("/filter", filterController.filterProduct)
+app.get("/filters", filterController.filterProduct)
 
 
 

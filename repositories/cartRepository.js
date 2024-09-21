@@ -64,16 +64,14 @@ module.exports = {
     },
 
     find: async (id, options) => {
-        console.log("id is ", id)
         try {
+            console.log("Finding cart for user_id:", id);
             return Cart.findOne({ where: { user_id: id }, ...options });
-
         } catch (error) {
-            console.log("Error", error.message)
-            // Handle any errors that occur during user creation
-            throw new Error(error.message);
+            console.error("Error finding cart:", error.message);
+            throw new Error("Failed to retrieve cart. " + error.message);
         }
-    },
+    }
 
 
 

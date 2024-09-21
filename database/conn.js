@@ -6,6 +6,12 @@ const sequelize = new Sequelize({
     username: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     host: process.env.DB_HOST,
+    pool: {
+        max: 10,   // Increase the maximum number of connections
+        min: 0,
+        acquire: 30000, // The maximum time (in ms) to wait for a connection
+        idle: 10000     // The maximum time (in ms) a connection can be idle
+    },
     // port: process.env.DB_PORT,
     dialect: 'mysql', // Or any other supported database dialect
 });
@@ -21,4 +27,3 @@ sequelize.authenticate()
 
 
 module.exports = sequelize;
- 

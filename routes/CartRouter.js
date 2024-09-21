@@ -1,7 +1,5 @@
 const express = require('express');
-const CategoryController = require('../controllers/CategoryController');
 const router = express.Router();
-const upload = require("../utils/upload")
 const auth = require("../middlewares/auth")
 const CartController = require("../controllers/CartController")
 

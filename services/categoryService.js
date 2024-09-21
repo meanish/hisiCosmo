@@ -80,7 +80,6 @@ const getallCat = async () => {
                 // featured_image = featured_image_file ? `${process.env.NEXT_PUBLIC_HISI_SERVER}/${imgPath}` : "";
 
                 const featured_image_file = await MediaRepository.find(mediaData);
-                console.log("ImagePath", featured_image_file)
                 let imgPath = featured_image_file ? imageConvert(featured_image_file?.filePath) : null;
 
 

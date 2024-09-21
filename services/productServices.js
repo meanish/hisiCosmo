@@ -284,6 +284,8 @@ const getSingleProduct = async (id) => {
                 ],
             });
 
+
+            console.log("..................",product)
             if (!product) {
                 return { success: false, message: `Product with ID ${id} not found` };
             }
@@ -313,8 +315,6 @@ const getSingleProduct = async (id) => {
                 });
 
             }
-            console.log("What are the gallaery images", product_gallery_files)
-
 
             // dicount
 
@@ -323,14 +323,9 @@ const getSingleProduct = async (id) => {
 
 
             if (discount) {
-                console.log("Available ids", discountId)
                 const getAllDiscount = await discountRepository.all()
-
-
-                console.log("All", getAllDiscount)
-                const findSingleData = getAllDiscount.find((currData) => currData.dataValues.productId === discountId)
-                discount_data = { ...findSingleData.dataValues }
-                console.log("Values of a single discount ", findSingleData)
+                const findSingleData = getAllDiscount.find((currData) => currData?.dataValues.productId === discountId)
+                discount_data = { ...findSingleData?.dataValues }
 
             }
 
@@ -392,7 +387,7 @@ const deleteSingleProduct = async (id) => {
             return { success: true, message: "Product has been deleted successfully" };
         } else {
             await transaction.rollback();
-            return { success: false, message: "Something wenrt wrong while product gets deleted" };
+            return { success: false, message: "Something went wrong while product gets deleted" };
         }
     } catch (error) {
         await transaction.rollback();
