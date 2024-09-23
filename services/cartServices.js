@@ -2,6 +2,7 @@ const sequelize = require("../database/conn");
 const cartRepository = require("../repositories/cartrepository");
 const cartitemsRepository = require("../repositories/cartitemsRepository");
 const cartrepository = require("../repositories/cartrepository");
+const AddUrlImage = require("../helper/addUrlImage");
 
 
 const storeNew = async (req, res) => {
@@ -48,34 +49,24 @@ const getAll = async (req, res) => {
 
     try {
         const getCartId = await cartrepository.find(user_id, { transaction })
+        if (getCartId) {
+            console.log(getCartId)
+            const getItemsResult = await cartitemsRepository.findAll(getCartId?.dataValues.id, { transaction })
 
-        const getItemsResult = await cartitemsRepository.findAll(getCartId?.dataValues.id, { transaction })
+            const modifiedItemsResult = AddUrlImage({ items: getItemsResult })
 
-        const modifiedItemsResult = [];
-
-        getItemsResult.forEach(item => {
-            let productWithFeaturedImage = { ...item.product?.dataValues };
-
-
-            if (item.product && item.product.productMedia.length > 0) {
-                const featuredImage = item.product?.dataValues.productMedia[0];
-                const path = featuredImage?.dataValues.file_path;
-                productWithFeaturedImage.featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${path}` || null;
+            return {
+                success: true,
+                data: modifiedItemsResult,
             }
-
-            modifiedItemsResult.push({
-                ...item.dataValues,
-                product: productWithFeaturedImage
-            });
-        });
-
-
-
-
-        return {
-            success: true,
-            data: modifiedItemsResult,
         }
+        else {
+            return {
+                success: true,
+                data: [],
+            }
+        }
+
 
     }
     catch (error) {
@@ -134,7 +125,7 @@ const asyncAll = async (req) => {
                 }
 
             default:
-                await transaction.rollback(); 
+                await transaction.rollback();
                 return { success: false, message: "Invalid method" };
         }
     } catch (error) {

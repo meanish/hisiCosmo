@@ -2,11 +2,14 @@ const Category = require("./categoryModel");
 const Media = require("./mediaModel");
 const Product = require("./productsModel");
 const Brand = require("./brandModel");
-const ProductCategories = require("./productCategories");
 const Cart = require("./cartsModel");
 const CartItem = require("./cartitemsModel");
 const User = require("./userModel");
 const Shipping = require("./shippingModel");
+const OrderProducts = require("./orderProductModel");
+const Order = require("./ordersModel");
+const Transaction = require("./transactionModel");
+const Purchase = require("./purchaseModel");
 
 
 // Define associations
@@ -17,7 +20,7 @@ Product.hasMany(Media, {
     scope: {
         mediaableType: 'product',
     },
-    as: 'productMedia',
+    as: 'productmedia',
 });
 
 Media.belongsTo(Product, {
@@ -93,6 +96,35 @@ Shipping.belongsTo(User, {
     onUpdate: 'CASCADE'
 });
 
+// ..................................payemnt associations ...........................
+
+User.hasMany(Order, { foreignKey: 'user_id' });
+Order.belongsTo(User, { foreignKey: 'user_id' });
+
+
+Order.hasOne(Transaction, { foreignKey: 'order_id', as: "order_data" });
+Transaction.belongsTo(Order, { foreignKey: 'order_id', as: "order_data" });
+
+Order.hasMany(Purchase, { foreignKey: 'order_id' });
+Purchase.belongsTo(Order, { foreignKey: 'order_id' });
+
+Product.hasMany(Purchase, { foreignKey: 'product_id' });
+Purchase.belongsTo(Product, { foreignKey: 'product_id' });
+
+
+Order.belongsToMany(Product, { through: OrderProducts, foreignKey: 'order_id' });
+Product.belongsToMany(Order, { through: OrderProducts, foreignKey: 'product_id' });
+
+Order.hasMany(OrderProducts, { foreignKey: 'order_id', as: "orderproducts" });
+OrderProducts.belongsTo(Order, { foreignKey: 'order_id', as: "order" });
+
+Product.hasMany(OrderProducts, { foreignKey: 'product_id', as: "orderproducts" });
+OrderProducts.belongsTo(Product, { foreignKey: 'product_id', as: "product" });
+
+
+// ..................................payemnt associations ending ...........................
+
+
 
 module.exports = {
     Product,
@@ -100,6 +132,10 @@ module.exports = {
     Media,
     Brand,
     CartItem,
-    Shipping
+    Shipping,
+    Order,
+    Transaction,
+    Purchase,
+    OrderProducts
 
 };

@@ -136,7 +136,7 @@ module.exports = {
                     include: [
                         {
                             model: Media,
-                            as: 'productMedia',
+                            as: 'productmedia',
                             attributes: ['file_path'],
                             where: {
                                 mediaableType: 'product'

@@ -35,7 +35,7 @@ const CartItem = sequelize.define('CartItem', {
 
 }, {
     tableName: 'cartitems', // Proper table name for junction table
-    timestamps: false, // Automatically handles created_at and updated_at
+    timestamps: true, // Automatically handles created_at and updated_at
     underscored: true, // Use snake_case for timestamps and other automatic fields
 });
 

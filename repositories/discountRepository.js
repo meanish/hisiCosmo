@@ -31,12 +31,12 @@ module.exports = {
         }
     },
 
-    update: async (id, fields,options) => {
+    update: async (id, fields, options) => {
         try {
 
             const discount = await Discount.findByPk(id);
             console.log("Found the disocunt table daata", discount, "Wht update", fields)
-            await discount.update(fields,options);
+            await discount.update(fields, options);
             return discount
         }
 

@@ -3,7 +3,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database/conn');
 
-const Purchase = sequelize.define('Purchase', {
+const Transaction = sequelize.define('Transaction', {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -18,25 +18,26 @@ const Purchase = sequelize.define('Purchase', {
         }
     },
 
+    status: {
+        type: DataTypes.ENUM('initiated', 'success', 'failed', 'pending'),
+        defaultValue: 'initiated'
+    },
+
+    transactionId: {
+        type: DataTypes.STRING,
+        allowNull: true
+    }, // online payment transaction ID or manually entered by admin for COD
+
     total_amount: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false
     },
-    status: {
-        type: DataTypes.ENUM('pending', 'confirmed', 'delivered', 'cancelled'),
-        defaultValue: 'pending'
-    },
-    createdAt: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW
-    },
-    updatedAt: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW
-    }
+
+    createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+    updatedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
 },
     {
-        tableName: 'purchase',
+        tableName: 'transaction',
         timestamps: true,
         underscored: true,
     }
@@ -46,13 +47,13 @@ const Purchase = sequelize.define('Purchase', {
 sequelize.sync().then(() => {
     sequelize.sync()
         .then(() => {
-            console.log("Purchase table synchronized successfully.");
+            console.log("Transaction table synchronized successfully.");
         })
         .catch((error) => {
-            console.error('Unable to synchronize the purchase table:', error);
+            console.error('Unable to synchronize the transaction table:', error);
         });
 })
 
 
 
-module.exports = Purchase;
+module.exports = Transaction;

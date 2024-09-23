@@ -8,7 +8,6 @@ module.exports = {
     create: async (proData) => {
         console.log("if cat before store", proData)
         try {
-            // Create a new user in the database
             return await Product.create(proData)
 
         } catch (error) {
@@ -31,6 +30,7 @@ module.exports = {
 
             const categories = [];
             categoryIds = JSON.parse(categoryIds).map(Number);
+
             // Iterate over each categoryId and fetch the corresponding category
             for (const categoryId of categoryIds) {
                 console.log(categoryId)
@@ -45,13 +45,14 @@ module.exports = {
 
 
             console.log('Catgeories', categories)
+
+
             if (categories.length !== categoryIds.length) {
                 throw new Error(`One or more categories with IDs ${categoryIds} not found`);
             }
             return await product.addCategory(categories, { through: { selfGranted: false } });
         }
         catch (error) {
-            // Handle any errors that occur during user creation
             throw new Error(error.message);
         }
     },

@@ -99,10 +99,6 @@ const getSingle = async (req, res) => {
         // working on suggestions 
         const getSuggestions = await getRandomSuggestions(product)
 
-        console.log("Get random suggestion for any products", getSuggestions)
-
-
-
         if (!result.success) {
             // If the service returns an error, send a 400 response with the message
             res.status(400).json({ success: false, error: result.message });
@@ -123,7 +119,6 @@ const getSingle = async (req, res) => {
 
 
 const getRandomSuggestions = async (product) => {
-    console.log("Product detsials", product)
     const { categories, brand_id, name, id } = product;
 
 
@@ -137,11 +132,6 @@ const getRandomSuggestions = async (product) => {
         const brandSuggestions = await productService.getProductsByBrand(brand_id, { limit: 4, random: true });
         const randomSuggestions = await productService.getRandomProducts(name, { limit: 4 });
         const allSuggestions = [...randomSuggestions, ...categorySuggestions, ...brandSuggestions];
-
-
-        console.log("Rando Suggestions", allSuggestions)
-
-
         let uniqueSuggestions = removeDuplicates(allSuggestions, 'id');
         uniqueSuggestions = uniqueSuggestions.filter(suggestion => suggestion.id !== id);
 
