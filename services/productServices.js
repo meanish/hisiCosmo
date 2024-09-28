@@ -285,7 +285,7 @@ const getSingleProduct = async (id) => {
             });
 
 
-            console.log("..................",product.categories)
+   
             if (!product) {
                 return { success: false, message: `Product with ID ${id} not found` };
             }

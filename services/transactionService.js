@@ -49,7 +49,6 @@ const edit = async (req) => {
         const isRightUser = getTransaction?.dataValues?.order_data?.user_id === user_id
 
 
-
         if (isRightUser) {
             const updateTransaction = await transactionRepository.update(req.body, { transaction });
             await transaction.commit();

@@ -15,9 +15,7 @@ const filterProduct = async (req, res) => {
         console.log("ids", brandIds)
 
 
-        // Build the filter condition
         const filter = {};
-
         if (brandIds.length > 0) {
             filter.brand_id = { [Sequelize.Op.in]: brandIds };
         }
@@ -26,7 +24,6 @@ const filterProduct = async (req, res) => {
         if (req.query.category) {
             const categoryIds = req.query.category.split(',');
 
-            // Find the categories and their parent categories (if they are subcategories)
             const categories = await Category.findAll({
                 where: {
                     id: { [Sequelize.Op.in]: categoryIds }
@@ -34,13 +31,9 @@ const filterProduct = async (req, res) => {
                 attributes: ['id', 'parent_category_id']
             });
 
-            let allCategoryIds = categoryIds.slice(); // Start with the given category IDs
-
+            let allCategoryIds = categoryIds.slice();
 
             console.log("ALlcategory", allCategoryIds)
-
-
-            // Add parent category IDs if they exist
             categories.forEach(cat => {
                 if (cat.parent_category_id) {
 
@@ -52,15 +45,15 @@ const filterProduct = async (req, res) => {
 
             include.push({
                 model: Category,
-                as: 'categories', // Use the correct alias
+                as: 'categories',
                 where: {
                     id: { [Sequelize.Op.in]: allCategoryIds }
                 },
                 through: {
-                    model: ProductCategories, // Specifies the join table
-                    attributes: [] // Exclude join table attributes
+                    model: ProductCategories,
+                    attributes: [] // Excl
                 },
-                attributes: [] // Exclude category attributes if not needed
+                attributes: []
             });
         }
 

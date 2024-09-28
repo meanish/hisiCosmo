@@ -22,6 +22,7 @@ const auth = async (req, res, next) => {
             next();
         }
         else {
+            alert("Failed to access user")
             res.redirect("/login");
         }
     } catch (error) {

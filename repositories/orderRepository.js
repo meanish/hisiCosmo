@@ -6,6 +6,8 @@ const Order = require("../models/ordersModel");
 const Media = require("../models/mediaModel");
 const OrderProducts = require("../models/orderProductModel");
 const Product = require("../models/productsModel");
+const User = require("../models/userModel");
+const Purchase = require("../models/purchaseModel");
 
 
 module.exports = {
@@ -77,18 +79,15 @@ module.exports = {
         }
     },
 
-    update: async ({ id, name, description }) => {
+    update: async (id, data, options) => {
         console.log("What the id", id)
+        const { status } = data
         try {
 
-            const brand = await Brand.findByPk(id);
-            brand.name = name;
-            brand.slug = slugify(name, { lower: true, strict: true });
-            brand.description = description;
-            await brand.save();
-
-            // Return the updated category
-            return brand;
+            const order = await Order.findByPk(id);
+            order.status = status;
+            await order.save();
+            return order
         }
 
 
@@ -139,28 +138,39 @@ module.exports = {
             throw new Error(error.message);
         }
     },
+
     findAll: async (id, options) => {
         try {
             console.log("Finding order for user_id:", id);
             return await Order.findAll({
-                include: [{
-                    model: OrderProducts,
-                    as: 'orderproducts',
-                    attributes: ['quantity', 'price'],
-                    include: [{
-                        model: Product,
-                        as: "product",
-                        attributes: ['id', 'name', 'price', 'description'],
+                include: [
+                    {
+                        model: OrderProducts,
+                        as: 'orderproducts',
+                        attributes: ['quantity', 'price'],
                         include: [{
-                            model: Media,
-                            as: 'productmedia',
-                            attributes: ['file_path'],
-                            where: {
-                                mediaableType: 'product'
-                            }
-                        }]
-                    }]
-                }],
+                            model: Product,
+                            as: "product",
+                            attributes: ['id', 'name', 'price', 'description'],
+                            include: [{
+                                model: Media,
+                                as: 'productmedia',
+                                attributes: ['file_path'],
+                                where: {
+                                    mediaableType: 'product'
+                                },
+                                required: false,
+                            }]
+                        }
+                        ]
+                    },
+                    {
+                        model: Purchase,
+                        as: 'purchase',
+                        attributes: ['status', 'id'],
+                    }
+                ],
+
                 ...options // Pass additional Sequelize options here
             });
         } catch (error) {
@@ -187,11 +197,17 @@ module.exports = {
                             attributes: ['file_path'],
                             where: {
                                 mediaableType: 'product'
-                            }
+                            },
+                            required: false,
+
                         }]
                     }]
-                }],
-                ...options // Pass additional Sequelize options here
+                }, {
+                    model: User,
+                    as: 'user_data',
+                }
+                ],
+                ...options || null // Pass additional Sequelize options here
             });
         } catch (error) {
             console.error("Error finding order:", error.message);

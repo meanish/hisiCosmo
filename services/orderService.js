@@ -12,6 +12,8 @@ const orderRepository = require("../repositories/orderRepository");
 const orderproductsRepository = require("../repositories/orderproductsRepository");
 const AddUrlImage = require("../helper/addUrlImage");
 const UrlinOrder = require("../helper/urlinOrder");
+const Transaction = require("../models/transactionModel");
+const Purchase = require("../models/purchaseModel");
 
 
 
@@ -70,41 +72,61 @@ const getmyOrder = async (req) => {
 
 
 const getallOrder = async (req) => {
-
     const transaction = await sequelize.transaction();
 
     try {
-        const isExisting = await orderRepository.findAll({ transaction });
+        const OrderData = await orderRepository.findAll({
+            transaction,
+        });
 
-
-        if (!isExisting) {
+        if (!OrderData) {
             await transaction.rollback();
-            return { success: false, message: "All order failed to fetch." };
+            return { success: false, message: "All orders failed to fetch." };
         }
 
-        return { success: true, data: isExisting };
 
+
+        await transaction.commit();
+        return { success: true, data: OrderData };
 
     } catch (error) {
-
-        console.log("eroro in order servuides", error.message)
-        return { success: false, message: error.message };
+        await transaction.rollback();
+        console.error(error);
+        return { success: false, message: "Error fetching orders", error: error.message };
     }
+};
 
-
-}
 
 
 const getsingleOrder = async (req) => {
 
     const transaction = await sequelize.transaction();
     const { id } = req.params;
-    console.log("WHat is isd", id)
     const modifiedItemsResult = []
     try {
         const getItemsResult = await orderRepository.findOne(id, { transaction });
+        if (!getItemsResult) {
+            await transaction.rollback();
+            return { success: false, message: getItemsResult?.message };
+        }
+
         console.log("Hwllo", getItemsResult)
 
+        const transactionExists = await Transaction.findOne({
+            where: { order_id: getItemsResult?.dataValues.id },
+            transaction,
+        });
+
+        getItemsResult.dataValues.transaction_status = transactionExists ? 1 : 0;
+
+        const purchaseExists = await Purchase.findOne({
+            where: { order_id: getItemsResult?.dataValues.id },
+            transaction,
+        });
+        getItemsResult.dataValues.purchase_status = purchaseExists ? 1 : 0;
+
+
+        // addition of image path in the order products
         const addImgPath = UrlinOrder({ items: getItemsResult.dataValues?.orderproducts })
 
 
@@ -116,10 +138,7 @@ const getsingleOrder = async (req) => {
             orderproducts: addImgPath
         });
 
-        if (!getItemsResult) {
-            await transaction.rollback();
-            return { success: false, message: "Order failed to fetch." };
-        }
+
 
 
         return {
@@ -137,6 +156,26 @@ const getsingleOrder = async (req) => {
 
 }
 
+const editSingleOrder = async ({ fields, id, file }) => {
+    const transaction = await sequelize.transaction();
+    console.log("Fields", fields)
+    try {
+
+        await orderRepository.update(id, fields, { transaction });
+        await transaction.commit();
+
+        return {
+            success: true,
+            message: "Order has been sucessfully updated!"
+        };
+
+    } catch (error) {
+        return { success: false, message: error.message };
+    }
+
+}
+
+
 
 
 
@@ -150,6 +189,7 @@ module.exports = {
     createNew,
     getmyOrder,
     getallOrder,
-    getsingleOrder
+    getsingleOrder,
+    editSingleOrder
 
 };

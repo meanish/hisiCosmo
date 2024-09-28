@@ -98,19 +98,15 @@ Shipping.belongsTo(User, {
 
 // ..................................payemnt associations ...........................
 
-User.hasMany(Order, { foreignKey: 'user_id' });
-Order.belongsTo(User, { foreignKey: 'user_id' });
+User.hasMany(Order, { foreignKey: 'user_id', as: "user_data" });
+Order.belongsTo(User, { foreignKey: 'user_id', as: "user_data" });
 
 
 Order.hasOne(Transaction, { foreignKey: 'order_id', as: "order_data" });
 Transaction.belongsTo(Order, { foreignKey: 'order_id', as: "order_data" });
 
-Order.hasMany(Purchase, { foreignKey: 'order_id' });
+Order.hasMany(Purchase, { foreignKey: 'order_id', as: "purchase" });
 Purchase.belongsTo(Order, { foreignKey: 'order_id' });
-
-Product.hasMany(Purchase, { foreignKey: 'product_id' });
-Purchase.belongsTo(Product, { foreignKey: 'product_id' });
-
 
 Order.belongsToMany(Product, { through: OrderProducts, foreignKey: 'order_id' });
 Product.belongsToMany(Order, { through: OrderProducts, foreignKey: 'product_id' });

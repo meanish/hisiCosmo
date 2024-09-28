@@ -85,7 +85,7 @@ app.get("/transstatus", StatusController.getTransacStatus)
 app.get("/orderstatus", StatusController.getOrderStatus)
 app.get("/purchasestatus", StatusController.getPurchaseStatus)
 app.get("/paymenttype", StatusController.getPaymentStatus)
-
+    
 // ..................DEPLOYEMENT......................
 
 

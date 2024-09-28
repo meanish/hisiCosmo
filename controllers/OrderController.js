@@ -26,7 +26,7 @@ const getMyOrder = async (req, res) => {
         if (result.success) {
             res.status(200).json({ data: result.data, success: true });
         }
-        else res.status(500).json({ success: false, message: 'Failed to get the order details' });
+        else res.status(500).json({ success: false, message: result?.message });
 
 
     } catch (error) {
@@ -41,7 +41,7 @@ const getAllOrder = async (req, res) => {
         if (result.success) {
             res.status(200).json({ data: result.data, success: true });
         }
-        else res.status(500).json({ success: false, message: 'Failed to get the all order details' });
+        else res.status(500).json({ success: false, message: result?.message });
 
 
     } catch (error) {
@@ -50,13 +50,14 @@ const getAllOrder = async (req, res) => {
 }
 
 const getSingleOrder = async (req, res) => {
+    console.log("...........", req.params)
     try {
         const result = await orderService.getsingleOrder(req);
-
+        console.log("Send to frontend", result)
         if (result.success) {
             res.status(200).json({ data: result.data, success: true });
         }
-        else res.status(500).json({ success: false, message: 'Failed to get the all order details' });
+        else res.status(500).json({ success: false, message: result?.message });
 
 
     } catch (error) {
@@ -65,18 +66,17 @@ const getSingleOrder = async (req, res) => {
 }
 
 
-const editSingleBrand = async (req, res) => {
+const editSingleOrder = async (req, res) => {
 
     try {
         const { id } = req.params;
-        const fields = req.body
-        const file = req.file
-        const result = await brandService.editSingleBrand({ fields, id, file })
+        const fields = req.body;
+        const result = await orderService.editSingleOrder({ fields, id })
 
         if (result.success) {
-            res.status(200).json({ data: result.data, success: true });
+            res.status(200).json({ message: result?.message, success: true });
         } else {
-            res.status(500).json({ error: result.message, success: false });
+            res.status(500).json({ error: result?.message, success: false });
         }
     }
     catch (error) {
@@ -170,5 +170,6 @@ module.exports = {
     storeNew,
     getAllOrder,
     getMyOrder,
-    getSingleOrder
+    getSingleOrder,
+    editSingleOrder
 };

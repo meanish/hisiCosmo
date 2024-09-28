@@ -16,7 +16,7 @@ const adminAuth = async (req, res, next) => {
             const userDetail = await User.findByPk(id)
 
             if (userDetail) {
-                console.log("Usr details", userDetail?.dataValues.role)
+                console.log("*********************Usr details", userDetail?.dataValues.role)
                 const isAdmin = userDetail?.dataValues.role === "admin"
                 if (isAdmin) {
                     req.user = userDetail.dataValues;
@@ -29,8 +29,10 @@ const adminAuth = async (req, res, next) => {
             next();
         }
         else {
-            res.redirect("/login");
+            alert("Failed to access admin")
+
         }
+
     } catch (error) {
         console.error("Authentication error:", error);
         return res.status(401).json({ message: 'Token expired or invalid', error: error.message });
