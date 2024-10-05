@@ -29,7 +29,8 @@ const adminAuth = async (req, res, next) => {
             next();
         }
         else {
-            alert("Failed to access admin")
+                    return res.status(403).json({ message: 'Failed to access admin' });
+
 
         }
 

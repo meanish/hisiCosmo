@@ -18,7 +18,7 @@ const ShippingRouter = require("./routes/shippingRouter")
 const OrderRouter = require("./routes/OrderRoutes")
 const TransactionRouter = require("./routes/TransactionRouter")
 const PurchaseRouter = require("./routes/PurchaseRoutes")
-
+const UserRouter = require("./routes/UserRoutes")
 
 const authRoutes = require("./routes/authRoutes");
 require("./database/conn")
@@ -77,7 +77,7 @@ app.use("/login", LoginRouter)
 app.use("/order", OrderRouter)
 app.use("/transaction", TransactionRouter)
 app.use("/purchase", PurchaseRouter)
-
+app.use("/user", UserRouter)
 
 app.get("/status", StatusController.getAllStatus)
 app.get("/discountstatus", StatusController.getDiscountStatus)
@@ -85,7 +85,7 @@ app.get("/transstatus", StatusController.getTransacStatus)
 app.get("/orderstatus", StatusController.getOrderStatus)
 app.get("/purchasestatus", StatusController.getPurchaseStatus)
 app.get("/paymenttype", StatusController.getPaymentStatus)
-    
+
 // ..................DEPLOYEMENT......................
 
 

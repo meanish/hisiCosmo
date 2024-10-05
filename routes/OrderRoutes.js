@@ -10,7 +10,7 @@ router.post('/store', auth, OrderController.storeNew);
 router.get("/myorder", auth, OrderController.getMyOrder)
 router.get("/all", adminAuth, OrderController.getAllOrder)
 // router.post("/async", auth, CartController.asyncCart)
-router.get("/single/:id", adminAuth, OrderController.getSingleOrder)
+router.get("/single/:id", auth, OrderController.getSingleOrder)
 router.post("/edit/:id", adminAuth, OrderController.editSingleOrder)
 
 

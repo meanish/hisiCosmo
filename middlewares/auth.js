@@ -22,8 +22,8 @@ const auth = async (req, res, next) => {
             next();
         }
         else {
-            alert("Failed to access user")
-            res.redirect("/login");
+            //  res.status(403).json({ message: 'Failed to access user' });
+            res.redirect("/auth/login");
         }
     } catch (error) {
         console.error("Authentication error:", error);

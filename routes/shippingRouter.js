@@ -7,7 +7,7 @@ const ShippingController = require("../controllers/ShippingAddressController")
 
 
 router.post('/store', auth, ShippingController.storeNew);
-
+router.post("/create",auth,ShippingController.create)
 // router.delete("/delete/:id", auth, CartController.deleteCart)
 router.get("/user", auth, ShippingController.getData)
 // router.post("/async", auth, CartController.asyncCart)

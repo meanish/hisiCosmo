@@ -3,6 +3,7 @@ const shippingService = require("../services/shippingServices")
 const storeNew = async (req, res) => {
 
     try {
+
         const result = await shippingService.storeNew(req);
         if (result.success) {
             res.status(200).json({ message: result.message, success: true });
@@ -19,7 +20,16 @@ const storeNew = async (req, res) => {
     }
 }
 
+const create = async (req, res) => {
+    try {
+        res.status(200).json({ message: "Done", success: true });
 
+    }
+    catch {
+        res.status(400).json({ errors: "Failed", success: false });
+
+    }
+}
 const getData = async (req, res) => {
 
     try {
@@ -36,6 +46,6 @@ const getData = async (req, res) => {
 
 module.exports = {
     storeNew,
-    getData
-
+    getData,
+    create
 };

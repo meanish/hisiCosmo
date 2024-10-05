@@ -1,9 +1,14 @@
 const bcrypt = require("bcryptjs");
-const userRepository = require("../repositories/registerRepository");
+const registerRepository = require("../repositories/registerRepository");
 const { validateUserData } = require("../schemas/userSchema");
 const { validateloginData } = require("../schemas/loginSchema");
 const loginRepository = require("../repositories/loginRepository");
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
+const userRepository = require("../repositories/userRepository");
+const mediaRepository = require("../repositories/mediaRepository");
+const mediaTask = require("../helper/mediaTask");
+const sequelize = require("../database/conn");
+const imageConvert = require("../helper/imageSlashremoval");
 
 async function register(userData) {
 
@@ -20,7 +25,7 @@ async function register(userData) {
     const hashedPassword = await hashPassword(userData.password);
 
     // Create new user
-    const newUser = await userRepository.create({ ...userData, password: hashedPassword });
+    const newUser = await registerRepository.create({ ...userData, password: hashedPassword });
     return newUser;
 }
 
@@ -70,6 +75,81 @@ async function login(userData) {
 
 }
 
+async function getmyData(id) {
+
+    const mediaData = {
+        mediaableId: id,
+        mediaableType: 'profile',
+    }
+    let featured_image;
+    try {
+        const users = await userRepository.all();
+
+        const findUsersData = async (id) => {
+            const isAvailable = users.find(currUser => currUser.dataValues.id === +id);
+
+            if (!isAvailable) {
+                return null;
+            }
+
+
+            const featured_image_file = await mediaRepository.find(mediaData);
+
+            if (featured_image_file) {
+
+                let imgPath = featured_image_file ? imageConvert(featured_image_file.dataValues.filePath) : null
+                featured_image = imgPath ? `${process.env.NEXT_PUBLIC_HISI_SERVER}/${imgPath}` : null;
+            }
+            else {
+                featured_image = null
+            }
+            return {
+                ...isAvailable.dataValues,
+                featured_image: featured_image,
+            };
+        };
+
+        const userData = await findUsersData(id);
+
+        return { success: true, data: userData };
+
+    } catch (error) {
+        return { success: false, message: error.message };
+    }
+}
+
+const updateUser = async ({ user_id, fields, file }) => {
+
+    const transaction = await sequelize.transaction();
+    let mediaType = "profile"
+
+    try {
+        let featured_image_path = await mediaTask(user_id, file, mediaType, fields, { transaction })
+
+        const getuserResult = await userRepository.update(user_id, fields, { transaction });
+        if (!getuserResult) {
+            await transaction.rollback();
+            return { success: false, message: "Something went wrong!" };
+        }
+
+
+        return {
+            success: true,
+            data: {
+                ...getuserResult.dataValues, featured_image: `${featured_image_path}`
+            }
+        }
+
+
+    } catch (error) {
+
+        console.log("eroro in order servuides", error.message)
+        return { success: false, message: error.message };
+    }
+
+
+}
+
 
 async function hashPassword(password) {
     const salt = await bcrypt.genSalt(10);
@@ -82,4 +162,4 @@ async function hashPassword(password) {
 
 
 
-module.exports = { register, login };
+module.exports = { register, login, getmyData, updateUser };

@@ -30,6 +30,10 @@ const User = sequelize.define('User', {
     password: {
         type: DataTypes.STRING,
         allowNull: false
+    },
+    dob: {
+        type: DataTypes.DATEONLY,
+        allowNull: true
     }
 }, {
     // Define model options

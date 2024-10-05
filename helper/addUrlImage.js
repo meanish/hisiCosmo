@@ -1,17 +1,11 @@
 const AddUrlImage = ({ items }) => {
 
     const modifiedItemsResult = [];
-
-
-    console.log("................", items)
-
-
-
     const imagePath = items?.forEach(item => {
-        let productWithFeaturedImage = { ...item.product?.dataValues };
+        let productWithFeaturedImage = { ...item.product?.dataValues, featured_image: "" };
 
 
-        if (item.product && item.product.productmedia.length > 0) {
+        if (item.product && item.product?.productmedia.length > 0) {
             const featuredImage = item.product?.dataValues.productmedia[0];
             const path = featuredImage?.dataValues.file_path;
             productWithFeaturedImage.featured_image = `${process.env.NEXT_PUBLIC_HISI_SERVER}/${path}` || null;

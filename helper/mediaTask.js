@@ -78,7 +78,7 @@ const mediaTask = async (id, file, mediaType, fields, options) => {
         });
         console.log("Did setr image now find one", existingMedia)
         if (existingMedia) {
-            let imgPath = featured_image_file ? imageConvert(existingMedia.filePath) : null
+            let imgPath = imageConvert(existingMedia.filePath)
             featured_image_path = imgPath ? `${process.env.NEXT_PUBLIC_HISI_SERVER}/${imgPath}` : "";
 
         }

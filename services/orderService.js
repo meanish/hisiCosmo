@@ -14,6 +14,7 @@ const AddUrlImage = require("../helper/addUrlImage");
 const UrlinOrder = require("../helper/urlinOrder");
 const Transaction = require("../models/transactionModel");
 const Purchase = require("../models/purchaseModel");
+const Order = require("../models/ordersModel");
 
 
 
@@ -103,7 +104,17 @@ const getsingleOrder = async (req) => {
     const transaction = await sequelize.transaction();
     const { id } = req.params;
     const modifiedItemsResult = []
+    const user_id = req.user.id
     try {
+        const isExisting = await Order.findOne({
+            where: { user_id, id },
+            transaction,
+        });
+
+        if (!isExisting) {
+            throw new Error("Order not belong to the user");
+        }
+
         const getItemsResult = await orderRepository.findOne(id, { transaction });
         if (!getItemsResult) {
             await transaction.rollback();

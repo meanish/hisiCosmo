@@ -100,7 +100,6 @@ module.exports = {
 
         } catch (error) {
             console.log("Error", error.message)
-            // Handle any errors that occur during user creation
             throw new Error(error.message);
         }
     },
@@ -140,8 +139,10 @@ module.exports = {
                             attributes: ['file_path'],
                             where: {
                                 mediaableType: 'product'
-                            }
-                        }
+                            },
+                            required: false,
+                        },
+
                     ]
                 }],
                 ...options

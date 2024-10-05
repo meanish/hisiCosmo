@@ -38,5 +38,42 @@ async function loginUser(req, res) {
     }
 }
 
+async function getData(req, res) {
+    const user_id = req.user.id;
 
-module.exports = { registerUser, loginUser }
+    try {
+        const result = await userService.getmyData(user_id);
+        if (result.success) {
+            res.status(200).json({ data: result.data, success: true });
+        }
+        else res.status(500).json({ success: false, message: result?.message });
+
+
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+
+const updateUser = async (req, res) => {
+    const fields = req.body
+    const file = req.file
+    const user_id = req.user.id;
+
+    try {
+        const result = await userService.updateUser({ user_id,fields, file });
+        if (result.success) {
+            res.status(200).json({ data: result.data, success: true });
+        }
+        else res.status(500).json({ success: false, message: result?.message });
+
+
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+
+
+
+
+
+module.exports = { registerUser, loginUser, getData, updateUser }

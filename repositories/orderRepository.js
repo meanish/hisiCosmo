@@ -127,7 +127,8 @@ module.exports = {
                             attributes: ['file_path'],
                             where: {
                                 mediaableType: 'product'
-                            }
+                            },
+                            required: false,
                         }]
                     }]
                 }],

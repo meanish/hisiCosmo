@@ -6,11 +6,11 @@ const { validateShippingData } = require("../schemas/shippingSchema");
 
 const storeNew = async (req, res) => {
     const transaction = await sequelize.transaction();
-
+    const data = req.body
     const user_id = req.user.id;
-    console.log("User in request", req.user)
+    console.log("User in request", data)
 
-    const validationErrors = validateShippingData(req.body);
+    const validationErrors = validateShippingData(data);
     if (validationErrors) {
         throw new Error(JSON.stringify(validationErrors));
 
@@ -21,10 +21,10 @@ const storeNew = async (req, res) => {
 
     console.log("is existing", isExisting)
     if (isExisting) {
-        await shippingRepository.update(user_id, req.body, { transaction })
+        await shippingRepository.update(user_id, data, { transaction })
     }
     else {
-        await shippingRepository.create(user_id, req.body, { transaction })
+        await shippingRepository.create(user_id, data, { transaction })
     }
     await transaction.commit();
     return {
@@ -42,10 +42,18 @@ const getData = async (req, res) => {
 
     try {
         const getCartId = await shippingRepository.find(user_id, { transaction })
-
-        return {
-            success: true,
-            data: getCartId.dataValues,
+        console.log("GetCart", getCartId)
+        if (getCartId) {
+            return {
+                success: true,
+                data: getCartId.dataValues,
+            }
+        }
+        else {
+            return {
+                success: true,
+                data: null,
+            }
         }
 
     }

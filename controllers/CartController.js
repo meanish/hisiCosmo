@@ -6,10 +6,10 @@ const storeNew = async (req, res) => {
         const result = await cartService.storeNew(req);
 
         console.log("result", result)
-        if (!result.success) {   
+        if (!result.success) {
             res.status(400).json({ success: false, message: result?.message });
         } else {
-          
+
             res.status(200).json({ message: "Added to cart success", success: true });
         }
     } catch (error) {
@@ -48,6 +48,23 @@ const asyncCart = async (req, res) => {
 }
 
 
+const removeItem = async (req, res) => {
+    try {
+        const result = await cartService.remove(req);
+
+        if (!result.success) {
+            res.status(400).json({ success: false, error: result.message || "Failed to update" });
+        } else {
+            // If the service returns a success, send a 200 response with the data
+            res.status(200).json({ message: result.message, success: true });
+        }
+    } catch (error) {
+        console.error("Error in asyncCart:", error.message);  // Improved logging for better debugging
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+
 const deleteCart = async (req, res) => {
     try {
         const result = await cartService.remove(req);
@@ -70,5 +87,6 @@ module.exports = {
     storeNew,
     deleteCart,
     getCart,
-    asyncCart
+    asyncCart,
+    removeItem
 };
