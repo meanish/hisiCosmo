@@ -5,18 +5,19 @@ const { find } = require("./mediaRepository");
 
 module.exports = {
 
-    create: async (req, user_id, options) => {
-        const { order_id, status, transaction_id, total_amount } = req.body;
+    create: async (data, options) => {
 
         try {
             return await Transaction.create({
-                order_id, status, transaction_id, total_amount
+                ...data
             }, options);
         } catch (error) {
             console.error("Error creating transaction:", error.message);
             throw new Error(error.message);
         }
     },
+
+
     find: async (id, options) => {
         console.log("id", id)
         try {

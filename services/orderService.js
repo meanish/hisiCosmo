@@ -29,15 +29,16 @@ const createNew = async (req) => {
         const newOrder = await orderRepository.create(req, user_id, { transaction });
         if (newOrder) {
             // store products of the order
-            const addProducts = await orderproductsRepository.create(newOrder.dataValues.id, products, { transaction })
+            const addProducts = await orderproductsRepository.create(newOrder?.dataValues.id, products, { transaction })
         }
         await transaction.commit();
-        return { success: true, message: "New Order created sucessfully!" };
+        console.log("........................", newOrder)
+        return { success: true, message: "New Order created sucessfully!", data: newOrder?.dataValues };
 
     } catch (error) {
         transaction.rollback()
         return {
-            success: false, message: "Couldn't create a brand"
+            success: false, message: "Failed to create an order"
         };
     }
 
@@ -63,7 +64,7 @@ const getmyOrder = async (req) => {
 
     } catch (error) {
 
-        console.log("eroro in order servuides", error.message)
+        console.log("eroro in order services", error.message)
         return { success: false, message: error.message };
     }
 

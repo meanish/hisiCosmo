@@ -16,7 +16,6 @@ const adminAuth = async (req, res, next) => {
             const userDetail = await User.findByPk(id)
 
             if (userDetail) {
-                console.log("*********************Usr details", userDetail?.dataValues.role)
                 const isAdmin = userDetail?.dataValues.role === "admin"
                 if (isAdmin) {
                     req.user = userDetail.dataValues;

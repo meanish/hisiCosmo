@@ -59,8 +59,10 @@ const updateUser = async (req, res) => {
     const file = req.file
     const user_id = req.user.id;
 
+    console.log("Fields", fields)
+
     try {
-        const result = await userService.updateUser({ user_id,fields, file });
+        const result = await userService.updateUser({ user_id, fields, file });
         if (result.success) {
             res.status(200).json({ data: result.data, success: true });
         }
