@@ -46,19 +46,19 @@ const getTransacStatus = async (req, res) => {
         const result = [
             {
                 "id": 1,
-                "name": "initiated",
+                "name": "PENDING",
             },
             {
                 "id": 2,
-                "name": "success",
+                "name": "COMPLETE",
             },
             {
                 "id": 3,
-                "name": "failed",
+                "name": "FULL_REFUND",
             },
             {
                 "id": 4,
-                "name": "pending",
+                "name": "CANCELED",
             }
         ];
 

@@ -19,11 +19,11 @@ const Transaction = sequelize.define('Transaction', {
     },
 
     status: {
-        type: DataTypes.ENUM('initiated', 'success', 'failed', 'pending'),
-        defaultValue: 'initiated'
+        type: DataTypes.ENUM('pending', 'complete', 'full_refund', 'cancelled'),
+        defaultValue: 'pending'
     },
 
-    transactionId: {
+    transaction_id: {
         type: DataTypes.STRING,
         allowNull: true
     }, // online payment transaction ID or manually entered by admin for COD

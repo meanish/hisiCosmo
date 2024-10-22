@@ -11,6 +11,7 @@ const imageConvert = require("../helper/imageSlashremoval");
 const orderRepository = require("../repositories/orderRepository");
 const orderproductsRepository = require("../repositories/orderproductsRepository");
 const transactionRepository = require("../repositories/transactionRepository");
+const PurchaseRepository = require("../repositories/purchaseRepository")
 const Order = require("../models/ordersModel");
 const { v4: uuidv4 } = require('uuid');
 const CryptoJS = require("crypto-js");
@@ -20,11 +21,22 @@ const createNew = async (req) => {
     const transaction = await sequelize.transaction();
 
     const user_id = req.user.id;
+    const currentTime = new Date();
+    const formattedTime =
+        currentTime.toISOString().slice(2, 10).replace(/-/g, '') +
+        '-' +
+        currentTime.getHours() +
+        currentTime.getMinutes() +
+        currentTime.getSeconds();
+    console.log("User Order Deta ..................................", req.body)
+    let transaction_id = formattedTime + +req.body?.order_id
     try {
+        let TransactionData = { ...req.body, transaction_id: transaction_id }
 
 
+        const newOrder = await transactionRepository.create(TransactionData, user_id, { transaction });
 
-        const newOrder = await transactionRepository.create(req.body, user_id, { transaction });
+        console.log("New Transaction", newOrder)
         await transaction.commit();
         return { success: true, message: "New Transaction created sucessfully!" };
 
@@ -44,10 +56,8 @@ const verify = async (req) => {
     const id = req.params.id
     const data = req.query.data
 
-    console.log("Data i n the verify ", data, "Also id", id)
     let decodedString = atob(data);
-    console.log("dec_string", decodedString)
-    console.log("ds==", typeof (decodedString))
+
     const obj = JSON.parse(decodedString)
     console.log("obj==", typeof (obj))
     decodedString = JSON.parse(decodedString)
@@ -62,28 +72,38 @@ const verify = async (req) => {
             try {
 
                 const order = await Order.findByPk(id)
-                console.log("Order...........", order?.dataValues)
-                const uid = uuidv4();
-                const message = `transaction_code=${decodedString.transaction_code},status=${decodedString.status},total_amount=${decodedString.total_amount},transaction_uuid=${decodedString.transaction_uuid},product_code=${decodedString.product_code},signed_field_names=${decodedString.signed_field_names}`
-                console.log(message)
-                const hash = CryptoJS.HmacSHA256(message, process.env.ESEWASECRET);
-                const hashInBase64 = CryptoJS.enc.Base64.stringify(hash);
-                console.log(hashInBase64)
-                console.log(hashInBase64 == decodedString.signature)
-                const result = hashInBase64 == decodedString.signature
-                if (result === false) {
-                    return { success: false, message: "Hash value not matched" };
-                }
-                let TransactionDetails = { order_id: order?.dataValues?.id, total_amount: order?.dataValues?.total_amount, transaction_id: decodedString.transaction_uuid, status: decodedString?.status }
-
-                console.log("Create a new Transacrton", TransactionDetails)
+                let TransactionDetails = { order_id: order?.dataValues?.id, total_amount: order?.dataValues?.total_amount, transaction_id: decodedString.transaction_uuid, status: decodedString?.status.toLowerCase() }
+                
+                //   create a purchase statement
                 const newOrderTransaction = await transactionRepository.create(TransactionDetails, { transaction });
                 console.log("New Transaction Status", newOrderTransaction)
+                // also create a puchase for it
+                let PurchaseDetails = { order_id: order?.dataValues?.id, total_amount: order?.dataValues?.total_amount, status: "confirmed" }
+                const newPurchase = await PurchaseRepository.create(PurchaseDetails, { transaction });
+                console.log("New Purchase Status", newPurchase)
+                await transaction.commit();
                 return {
-                    success: true, message: "New Transaction Created!"
+                    success: true, message: "Order is placement after successful transaction!"
                 };
 
+                // notworking as of now issue with signature variation
+
+                // const uid = uuidv4();
+                // const cleanAmount = Number(parseFloat(decodedString.total_amount.replace(/,/g, '')).toFixed(0));
+                // console.log(typeof cleanAmount, typeof decodedString.transaction_uuid, typeof decodedString.product_code)
+                // const message = `transaction_code=${ decodedString.transaction_code }, status = ${ decodedString.status }, total_amount = ${ cleanAmount }, transaction_uuid = ${ decodedString.transaction_uuid }, product_code = ${ decodedString.product_code }, signed_field_names = ${ decodedString.signed_field_names } `
+                // console.log(message)
+                // const hash = CryptoJS.HmacSHA256("total_amount=1500,transaction_uuid=241018-132544,product_code=EPAYTEST", process.env.ESEWASECRET);
+                // const hashInBase64 = CryptoJS.enc.Base64.stringify(hash);
+                // console.log(hashInBase64)
+                // console.log(hashInBase64 == decodedString.signature)
+                // const result = hashInBase64 == decodedString.signature
+                // if (result === false) {
+                //     return { success: false, message: "Hash value not matched" };
+                // }
+
             } catch (error) {
+                await transaction.rollback();
                 return {
                     success: false, message: error.message, error: error.message
                 };

@@ -53,18 +53,18 @@ const getmyOrder = async (req) => {
 
     try {
         const isExisting = await orderRepository.find(user_id, { transaction });
-
+        const reversedData = isExisting?.reverse();
         if (!isExisting) {
             await transaction.rollback();
             return { success: false, message: "No order found of the user" };
         }
 
-        return { success: true, data: isExisting };
+        return { success: true, data: reversedData };
 
 
     } catch (error) {
 
-        console.log("eroro in order services", error.message)
+        console.log("error in order services", error.message)
         return { success: false, message: error.message };
     }
 
@@ -81,6 +81,9 @@ const getallOrder = async (req) => {
             transaction,
         });
 
+
+        const reversedData = OrderData?.reverse();
+
         if (!OrderData) {
             await transaction.rollback();
             return { success: false, message: "All orders failed to fetch." };
@@ -89,7 +92,7 @@ const getallOrder = async (req) => {
 
 
         await transaction.commit();
-        return { success: true, data: OrderData };
+        return { success: true, data: reversedData };
 
     } catch (error) {
         await transaction.rollback();
@@ -112,7 +115,7 @@ const getsingleOrder = async (req) => {
             transaction,
         });
 
-        if (!isExisting) {
+        if (!isExisting && req.user?.role != "admin") {
             throw new Error("Order not belong to the user");
         }
 
@@ -129,12 +132,16 @@ const getsingleOrder = async (req) => {
             transaction,
         });
 
+        console.log("Transaction Status", transactionExists)
         getItemsResult.dataValues.transaction_status = transactionExists ? 1 : 0;
 
         const purchaseExists = await Purchase.findOne({
             where: { order_id: getItemsResult?.dataValues.id },
             transaction,
         });
+
+        console.log("Purchasea Status", purchaseExists)
+
         getItemsResult.dataValues.purchase_status = purchaseExists ? 1 : 0;
 
 

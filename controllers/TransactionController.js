@@ -20,7 +20,7 @@ const verify = async (req, res) => {
         if (!result.success) {
             res.status(400).json({ message: result.message, success: false });
         } else {
-            res.status(200).json({ message: result.message, success: true });
+            res.redirect(`${process.env.HISI_FRONT}/settings/orders`);
         }
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
